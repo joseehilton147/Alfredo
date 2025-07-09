@@ -260,7 +260,7 @@ MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 ## 📞 **Contato**
 
-- 📧 Email: seu-email@exemplo.com
+- 📧 Linkedin: [Jose Hilton](https://www.linkedin.com/in/jose-hilton/)
 - 🐙 GitHub: [joseehilton147](https://github.com/joseehilton147)
 - 💬 Issues: [Reportar problemas](https://github.com/joseehilton147/Alfredo/issues)
 
