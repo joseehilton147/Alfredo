@@ -1,0 +1,36 @@
+# 🤖 Video Summarizer - Alfredo AI
+# Dependências Python necessárias
+
+# === CORE DEPENDENCIES ===
+requests>=2.31.0          # HTTP requests para API calls
+tqdm>=4.66.0              # Barras de progresso
+psutil>=7.0.0             # Informações do sistema
+
+# === ÁUDIO E TRANSCRIÇÃO ===
+openai-whisper>=20231117  # Transcrição de áudio (OpenAI Whisper)
+# torch e torchaudio são instalados automaticamente com whisper
+
+# === PROCESSAMENTO DE MÍDIA ===
+scenedetect[opencv]>=0.6.0  # Detecção de cenas e OpenCV
+pillow>=10.0.0              # Manipulação de imagens
+numpy>=1.24.0               # Operações numéricas
+
+# === YOUTUBE DOWNLOAD ===
+yt-dlp>=2025.6.30          # Download de vídeos do YouTube
+
+# === INTERFACE E TERMINAL ===
+colorama>=0.4.6            # Cores no terminal (Windows)
+
+# === UTILITIES ===
+python-dateutil>=2.8.2    # Manipulação de datas
+pathlib2>=2.3.7           # Compatibilidade de caminhos
+
+# === SISTEMA ===
+# ffmpeg deve ser instalado separadamente no sistema
+# Ollama deve ser instalado separadamente para análise avançada
+
+# === INSTALAÇÃO COMPLETA ===
+# 1. pip install -r requirements.txt
+# 2. pip install openai-whisper (se não incluído)
+# 3. Instalar ffmpeg no sistema
+# 4. Instalar e configurar Ollama (opcional)
