@@ -1,0 +1,113 @@
+# 🤖 Video Summarizer - Alfredo AI
+# Arquivos e pastas ignorados pelo Git
+
+# ==== DADOS TEMPORÁRIOS ====
+_temp/
+*.tmp
+temp/
+cache/
+
+# ==== DADOS DE ENTRADA ====
+# Vídeos e áudios de entrada (muito grandes para Git)
+data/input/local/*.mp4
+data/input/local/*.avi
+data/input/local/*.mov
+data/input/local/*.mkv
+data/input/local/*.webm
+data/input/local/*.mp3
+data/input/local/*.wav
+data/input/local/*.m4a
+data/input/local/*.flac
+
+# ==== CACHE E PROCESSAMENTO ====
+# Cache de áudio extraído
+data/cache/audio/
+data/cache/frames/
+data/cache/
+
+# ==== RESULTADOS (opcional) ====
+# Descomente se não quiser versionar os resumos
+# data/output/summaries/
+# *_resumo.md
+
+# ==== PYTHON ====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==== AMBIENTES VIRTUAIS ====
+env/
+venv/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==== CONFIGURAÇÕES LOCAIS ====
+.env
+.env.local
+.env.production
+.env.development
+config/local.py
+config/secrets.py
+
+# ==== LOGS ====
+*.log
+logs/
+*.log.*
+
+# ==== EDITORES ====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ==== SISTEMAS OPERACIONAIS ====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# ==== MODELOS DE IA ====
+# Modelos grandes do Whisper (são baixados automaticamente)
+*.pt
+models/
+
+# ==== BACKUP E VERSÕES ====
+*_backup.py
+*_old.py
+*_bak.*
+
+# ==== TESTES ====
+tests/video-sample.mp4
