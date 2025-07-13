@@ -163,19 +163,37 @@ async def main():
     parser = argparse.ArgumentParser(description='Resumir vídeo do YouTube com IA')
     parser.add_argument('url', help='URL do vídeo do YouTube')
     parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
+    parser.add_argument('--show-groq-status', action='store_true', help='Mostrar status da API Groq')
     args = parser.parse_args()
+    
+    # Mostrar status do Groq se solicitado ou se for o provider padrão
+    if args.show_groq_status or (not args.provider or args.provider == 'groq'):
+        try:
+            from services.groq_monitor import groq_monitor
+            print(groq_monitor.get_usage_summary())
+        except Exception:
+            pass  # Falha silenciosa se houver problemas com o monitor
 
     video_id = extract_video_id(args.url)
     video_path = Path(f'data/input/youtube/{video_id}.mp4')
-    audio_path = Path(f'data/cache/audio/{video_id}.wav')
+    
+    # Determinar formato de áudio disponível (FLAC tem prioridade por ser lossless)
+    audio_flac_path = Path(f'data/cache/audio/{video_id}.flac')
+    audio_mp3_path = Path(f'data/cache/audio/{video_id}.mp3')
+    
+    # Usar FLAC se disponível e no tamanho adequado, senão MP3
+    if audio_flac_path.exists() and audio_flac_path.stat().st_size <= 40 * 1024 * 1024:
+        audio_path = audio_flac_path
+    else:
+        audio_path = audio_mp3_path
     spinner = ProgressSpinner()
     ai_provider = None
     transcription = None
     try:
         # ETAPA 1: DOWNLOAD DO VIDEO
-        safe_print('ETAPA 1: Download do Video')
+        safe_print('🤖 Alfredo: Iniciando primeira etapa, baixando o vídeo do YouTube')
         if not video_path.exists():
-            safe_print('Baixando video do YouTube...')
+            safe_print('🤖 Alfredo: Vou baixar o vídeo para você agora...')
             spinner = ProgressSpinner('Baixando')
             spinner.start()
             try:
@@ -186,9 +204,9 @@ async def main():
                 await retry_operation(download_operation, 3, 'Download do video')
             finally:
                 spinner.stop()
-            safe_print('Download concluido!')
+            safe_print('🤖 Alfredo: Ótimo! Download concluído com sucesso!')
         else:
-            safe_print('Reutilizando video ja baixado')
+            safe_print('🤖 Alfredo: Ah, já encontrei o vídeo aqui nos meus arquivos, irei reutilizar.')
         safe_print('---------------------------------------------------------------\n')
 
         # Obter informações do vídeo
@@ -221,9 +239,9 @@ async def main():
         print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
 
         # ETAPA 2: EXTRACAO DE AUDIO
-        safe_print('ETAPA 2: Extracao de Audio')
+        safe_print('🤖 Alfredo: Agora vou extrair o áudio do vídeo para análise')
         if not audio_path.exists():
-            safe_print('Extraindo audio do video...')
+            safe_print('🤖 Alfredo: Processando o áudio em alta qualidade...')
             spinner = ProgressSpinner('Processando audio')
             spinner.start()
             try:
@@ -231,37 +249,69 @@ async def main():
                     with suppress_stdout():
                         from commands.video.audio_analyzer import extract_audio
                         return extract_audio(video_path)
-                await retry_operation(extract_operation, 3, 'Extracao de audio')
+                result_path = await retry_operation(extract_operation, 3, 'Extracao de audio')
+                if result_path:
+                    # Atualizar audio_path para o formato retornado (pode ser FLAC ou MP3)
+                    audio_path = result_path
             finally:
                 spinner.stop()
-            audio_size = audio_path.stat().st_size / (1024 * 1024) if audio_path.exists() else 0
-            audio_duration = get_duration(audio_path)
-            print(f'\033[1;36m\n🎵 Áudio extraído!\033[0m')
+        else:
+            safe_print('🤖 Alfredo: Perfeito! Já tenho o áudio extraído, vou reutilizar.')
+            
+        # Verificar se o arquivo existe e seu tamanho
+        if not audio_path.exists():
+            raise Exception('Falha na extração de áudio - arquivo não foi criado')
+            
+        audio_size = audio_path.stat().st_size / (1024 * 1024)
+        audio_duration = get_duration(audio_path)
+        
+        # Verificar limites do Groq antes de prosseguir
+        max_size_mb = 40  # Free tier limit
+        if audio_size > max_size_mb:
+            print(f'\033[1;31m\n⚠️  AVISO: Arquivo de áudio muito grande!\033[0m')
             print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
             print(f'  📁  Arquivo  : \033[1;37m{audio_path.name}\033[0m')
-            print(f'  💾  Tamanho  : \033[1;34m{audio_size:.2f} MB\033[0m')
+            print(f'  💾  Tamanho  : \033[1;31m{audio_size:.2f} MB (limite: {max_size_mb}MB)\033[0m')
             print(f'  ⏱️  Duração  : \033[1;35m{audio_duration} min\033[0m')
-            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
-        else:
-            safe_print('Reutilizando audio ja extraido')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+            print(f'\033[1;33m💡 Dica: Para arquivos grandes, considere usar o Ollama local\033[0m')
+            print(f'\033[1;33m   ou divida o vídeo em partes menores.\033[0m\n')
+            # Perguntar se deseja prosseguir mesmo assim
+            try:
+                response = input('🤔 Deseja tentar processar mesmo assim? (s/N): ').strip().lower()
+                if response not in ['s', 'sim', 'y', 'yes']:
+                    print('📋 Processamento cancelado pelo usuário.')
+                    return
+            except KeyboardInterrupt:
+                print('\n📋 Processamento cancelado.')
+                return
+                
+        # Exibir informações do áudio processado
+        print(f'\033[1;36m\n🎵 Áudio extraído!\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+        print(f'  📁  Arquivo  : \033[1;37m{audio_path.name}\033[0m')
+        print(f'  💾  Tamanho  : \033[1;34m{audio_size:.2f} MB\033[0m')
+        print(f'  ⏱️  Duração  : \033[1;35m{audio_duration} min\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
         safe_print('---------------------------------------------------------------\n')
 
         # ETAPA 3: TRANSCRICAO
-        safe_print('ETAPA 3: Transcricao do Audio')
+        safe_print('🤖 Alfredo: Terceira etapa - vou transcrever todo o áudio para texto')
+        
+        # Definir provedores no início
+        from core.provider_factory import get_ai_provider
+        current_provider = args.provider or 'groq'
+        fallback_provider = 'ollama' if current_provider == 'groq' else 'groq'
+        providers = [current_provider, fallback_provider]
+        
         transcription = load_transcription_cache(video_id)
         if transcription:
-            safe_print('Reutilizando transcricao do cache')
-            ai_provider_name = args.provider or 'groq'
-            from core.provider_factory import get_ai_provider
-            ai_provider = get_ai_provider(ai_provider_name)
+            safe_print('🤖 Alfredo: Que sorte! Já tenho a transcrição salva, vou reutilizar.')
+            ai_provider = get_ai_provider(current_provider)
         else:
-            safe_print('Transcrevendo audio com IA...')
-            from core.provider_factory import get_ai_provider
-            current_provider = args.provider or 'groq'
-            fallback_provider = 'ollama' if current_provider == 'groq' else 'groq'
-            providers = [current_provider, fallback_provider]
+            safe_print('🤖 Alfredo: Vou usar minha IA para transcrever o áudio completo...')
             for provider_name in providers:
-                safe_print(f'Usando provedor: {provider_name.title()}')
+                safe_print(f'🤖 Alfredo: Usando o {provider_name.title()} para transcrever')
                 try:
                     temp_provider = get_ai_provider(provider_name)
                     spinner = ProgressSpinner(f'Transcrevendo com {provider_name.title()}')
@@ -275,17 +325,39 @@ async def main():
                             transcription = result
                             ai_provider = temp_provider
                             save_transcription_cache(video_id, transcription)
-                            safe_print('Transcricao concluida!')
+                            safe_print('🤖 Alfredo: Excelente! Transcrição concluída com sucesso!')
                             break
                     finally:
                         spinner.stop()
                 except Exception as e:
                     spinner.stop()
-                    safe_print(f'Falha com {provider_name.title()}: {str(e)[:50]}...')
+                    error_msg = str(e)
+                    
+                    # Tratamento específico para erro 413 (Content Too Large)
+                    if "413" in error_msg or "too large" in error_msg.lower() or "content too large" in error_msg.lower():
+                        safe_print(f'🤖 Alfredo: Ops! Arquivo muito grande para {provider_name.title()}')
+                        safe_print(f'   📦 Tamanho atual: {audio_size:.1f}MB (limite Groq: 40MB)')
+                        
+                        if provider_name == 'groq':
+                            safe_print('🤖 Alfredo: Sem problemas! Vou tentar com Ollama local...')
+                        else:
+                            safe_print('🤖 Alfredo: Considere usar um arquivo menor ou dividir o vídeo.')
+                            
+                    # Tratamento para rate limit
+                    elif "rate limit" in error_msg.lower():
+                        safe_print(f'🤖 Alfredo: Atingi o limite de requisições em {provider_name.title()}')
+                        if provider_name != fallback_provider:
+                            safe_print(f'🤖 Alfredo: Vou tentar com {fallback_provider.title()}...')
+                    
+                    # Outros erros
+                    else:
+                        safe_print(f'🤖 Alfredo: Tive um problema com {provider_name.title()}: {error_msg[:50]}...')
+                        
                     if provider_name != fallback_provider:
-                        safe_print(f'Tentando com {fallback_provider.title()}...')
-            if not transcription or not ai_provider:
-                raise Exception('Todos os provedores de IA falharam na transcricao. Não é possível prosseguir para a sumarização.')
+                        safe_print(f'🤖 Alfredo: Tentando com {fallback_provider.title()}...')
+        if not transcription or not ai_provider:
+            raise Exception('Todos os provedores de IA falharam na transcricao. Não é possível prosseguir para a sumarização.')
+        
         # Painel informativo da transcrição
         if transcription:
             word_count = len(transcription.split())
@@ -299,8 +371,8 @@ async def main():
         safe_print('---------------------------------------------------------------\n')
 
         # ETAPA 4: GERACAO DO RESUMO
-        safe_print('ETAPA 4: Geracao do Resumo')
-        safe_print('Criando resumo inteligente...')
+        safe_print('🤖 Alfredo: Última etapa - vou criar um resumo inteligente do conteúdo')
+        safe_print('🤖 Alfredo: Analisando todo o conteúdo para fazer um resumo completo...')
         spinner = ProgressSpinner('Analisando e resumindo')
         spinner.start()
         try:
@@ -310,6 +382,7 @@ async def main():
             summary = await retry_operation(summarize_operation, 3, 'Geracao de resumo')
         finally:
             spinner.stop()
+            
         # Painel informativo do resumo
         if summary:
             summary_lines = summary.strip().splitlines()
@@ -323,8 +396,8 @@ async def main():
         safe_print('---------------------------------------------------------------\n')
 
         # FINALIZACAO
-        safe_print('FINALIZANDO')
-        safe_print('Gerando HTML...')
+        safe_print('🤖 Alfredo: Quase pronto! Vou gerar a página para você')
+        safe_print('🤖 Alfredo: Criando uma página web bonita com seu resumo...')
         output_dir = Path('data/output/summaries/youtube')
         output_dir.mkdir(parents=True, exist_ok=True)
         from services.markdown_utils import create_html_directly
@@ -332,27 +405,26 @@ async def main():
         html_path = create_html_directly(summary, video_title, output_dir, output_filename=f'{video_id}.html')
         html_size = html_path.stat().st_size / 1024 if html_path.exists() else 0
         html_url = html_path.resolve().as_uri()
-        print(f'\033[1;36m\n🌐 HTML gerado!\033[0m')
+        print(f'\033[1;36m\n🌐 Página gerada!\033[0m')
         print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
         print(f'  📄  Arquivo  : \033[1;37m{html_path.name}\033[0m')
         print(f'  💾  Tamanho  : \033[1;34m{html_size:.2f} KB\033[0m')
         print(f'  🌍  Caminho  : \033[1;32m{html_url}\033[0m')
         print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
-        safe_print('Abrindo no navegador...')
+        safe_print('🤖 Alfredo: Abrindo no seu navegador para você conferir...')
         from services.open_in_browser import open_in_browser
         open_in_browser(html_url)
         safe_print('---------------------------------------------------------------\n')
 
         safe_print('===============================================================')
-        safe_print('Processo concluido com sucesso!')
-        safe_print(f'O resumo foi aberto no seu navegador para leitura.')
-        safe_print(f'Arquivo salvo: {video_id}.html')
+        safe_print('🤖 Alfredo: Missão cumprida! Processo concluído com sucesso!')
+        safe_print('🤖 Alfredo: Seu resumo está pronto e foi aberto no navegador.')
         safe_print('===============================================================')
 
     except Exception as e:
         safe_print('\n===============================================================')
-        safe_print('Processo interrompido')
-        safe_print(f'Erro: {str(e)}')
+        safe_print('🤖 Alfredo: Ops! Tive que interromper o processo')
+        safe_print(f'🤖 Alfredo: Encontrei este problema: {str(e)}')
         safe_print('===============================================================')
     finally:
         import os
@@ -360,7 +432,7 @@ async def main():
             if audio_path and isinstance(audio_path, Path) and audio_path.exists():
                 os.remove(audio_path)
         except Exception as e:
-            safe_print(f'! Alfredo: Não consegui remover arquivo de áudio temporário {audio_path}: {e}')
+            pass  # Limpeza silenciosa - não queremos interromper o usuário
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -41,32 +41,79 @@ LLM_MODEL = "llama3:8b"
 AUDIO_EXTENSIONS = [".mp4", ".avi", ".mov", ".mkv", ".webm", ".mp3", ".wav", ".m4a", ".flac"]
 
 def extract_audio(video_path: Path) -> Optional[Path]:
-    """Extrai audio do video usando ffmpeg"""
+    """
+    Extrai audio do video usando ffmpeg com otimizações para Groq API
+    
+    Segue as recomendações do Groq:
+    - Downsample para 16KHz mono (otimizado para speech recognition)
+    - Usa FLAC para compressão lossless quando possível
+    - Mantém MP3 com alta qualidade VBR como fallback
+    """
     # NUNCA imprime nada, suprime todo output
     audio_cache_dir = paths.CACHE_ROOT / "audio"
     audio_cache_dir.mkdir(parents=True, exist_ok=True)
+    
     # Usa sempre o video_id como base
     video_id = video_path.stem
-    audio_path = audio_cache_dir / f"{video_id}.wav"
-    if audio_path.exists():
-        return audio_path
+    
+    # Tenta FLAC primeiro (recomendação Groq para compressão lossless)
+    flac_path = audio_cache_dir / f"{video_id}.flac"
+    if flac_path.exists():
+        # Verifica se está dentro dos limites do Groq (40MB free tier)
+        if flac_path.stat().st_size <= 40 * 1024 * 1024:
+            return flac_path
+        # Se muito grande, remove e usa MP3
+        flac_path.unlink()
+    
+    # Fallback para MP3 otimizado
+    mp3_path = audio_cache_dir / f"{video_id}.mp3"
+    if mp3_path.exists():
+        return mp3_path
+    
     try:
-        cmd = [
+        # Primeiro tenta FLAC otimizado para Groq
+        flac_cmd = [
             "ffmpeg", "-i", str(video_path),
-            "-acodec", "pcm_s16le",
-            "-ar", "16000",
-            "-ac", "1",
+            "-ar", "16000",       # 16KHz conforme recomendação Groq
+            "-ac", "1",           # Mono conforme recomendação Groq
+            "-map", "a:0",        # Primeiro stream de áudio apenas
+            "-compression_level", "8",  # Máxima compressão FLAC
             "-y",
-            str(audio_path)
+            str(flac_path)
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        if result.returncode == 0 and audio_path.exists():
-            return audio_path
+        
+        result = subprocess.run(flac_cmd, capture_output=True, text=True, timeout=300)
+        
+        # Se FLAC deu certo e está no tamanho adequado
+        if result.returncode == 0 and flac_path.exists():
+            file_size = flac_path.stat().st_size
+            if file_size <= 40 * 1024 * 1024:  # 40MB limit free tier
+                return flac_path
+            else:
+                # Remove FLAC muito grande e tenta MP3
+                flac_path.unlink()
+        
+        # Fallback para MP3 com compressão mais agressiva
+        mp3_cmd = [
+            "ffmpeg", "-i", str(video_path),
+            "-ar", "16000",       # 16KHz conforme recomendação Groq
+            "-ac", "1",           # Mono conforme recomendação Groq
+            "-b:a", "64k",        # Bitrate mais baixo para reduzir tamanho
+            "-map", "a:0",        # Primeiro stream de áudio apenas
+            "-y",
+            str(mp3_path)
+        ]
+        
+        result = subprocess.run(mp3_cmd, capture_output=True, text=True, timeout=300)
+        
+        if result.returncode == 0 and mp3_path.exists():
+            return mp3_path
         else:
             import re
             err = result.stderr or result.stdout or 'Erro desconhecido'
             err = re.sub(r'[^\x20-\x7E]+', '', err)
             raise Exception(f'Erro na extracao de audio: {err}')
+            
     except subprocess.TimeoutExpired:
         raise Exception('A extracao demorou demais - video muito longo')
     except FileNotFoundError:

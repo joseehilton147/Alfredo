@@ -49,9 +49,14 @@ def install_ytdlp():
 def extract_video_id(url: str) -> str:
     """Extrai o video_id da URL do YouTube"""
     import re
-    match = re.search(r'(?<=v=|/videos/|embed/|watch\?v=|watch\?.+&v=)([^&]{11})', url)
-    if match:
-        return match.group(1)
+    patterns = [
+        r'(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)',
+        r'youtu\.be\/([0-9A-Za-z_-]{11})'
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
     raise ValueError("ID do vídeo não encontrado na URL fornecida.")
 
 def download_youtube_video(url: str, output_dir: Path = None, output_filename: str = None) -> Path:
