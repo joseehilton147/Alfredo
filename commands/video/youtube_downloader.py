@@ -46,7 +46,15 @@ def install_ytdlp():
         print("❌ Erro ao instalar yt-dlp")
         return False
 
-def download_youtube_video(url: str, output_dir: Path = None) -> Path:
+def extract_video_id(url: str) -> str:
+    """Extrai o video_id da URL do YouTube"""
+    import re
+    match = re.search(r'(?<=v=|/videos/|embed/|watch\?v=|watch\?.+&v=)([^&]{11})', url)
+    if match:
+        return match.group(1)
+    raise ValueError("ID do vídeo não encontrado na URL fornecida.")
+
+def download_youtube_video(url: str, output_dir: Path = None, output_filename: str = None) -> Path:
     """
     Baixa video do YouTube na melhor qualidade com audio usando nova estrutura
     Retorna o caminho do arquivo baixado
@@ -54,6 +62,9 @@ def download_youtube_video(url: str, output_dir: Path = None) -> Path:
     if output_dir is None:
         output_dir = paths.INPUT_YOUTUBE
     output_dir.mkdir(parents=True, exist_ok=True)
+    if output_filename is None:
+        # fallback para título, mas o ideal é sempre passar o video_id
+        output_filename = '%(id)s.%(ext)s'
     cmd = [
         sys.executable, '-m', 'yt_dlp',
         '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best',
@@ -62,13 +73,20 @@ def download_youtube_video(url: str, output_dir: Path = None) -> Path:
         '--write-auto-sub',
         '--sub-lang', 'pt,en',
         '--no-playlist',
-        '-o', '%(title)s.%(ext)s',
+        '-o', output_filename,
         url
     ]
     # NUNCA imprime nada, suprime todo output
     try:
         result = subprocess.run(cmd, cwd=output_dir, capture_output=True, text=True)
         if result.returncode == 0:
+            # Busca pelo nome exato
+            if '%(id)s' in output_filename or output_filename.endswith('.mp4'):
+                # Se output_filename é um nome fixo
+                expected_file = output_dir / output_filename.replace('%(id)s', extract_video_id(url)).replace('%(ext)s', 'mp4')
+                if expected_file.exists():
+                    return expected_file
+            # fallback: retorna o arquivo mp4 mais recente
             video_files = list(output_dir.glob('*.mp4'))
             if video_files:
                 latest_file = max(video_files, key=lambda f: f.stat().st_mtime)

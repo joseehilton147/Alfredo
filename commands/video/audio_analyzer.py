@@ -45,7 +45,9 @@ def extract_audio(video_path: Path) -> Optional[Path]:
     # NUNCA imprime nada, suprime todo output
     audio_cache_dir = paths.CACHE_ROOT / "audio"
     audio_cache_dir.mkdir(parents=True, exist_ok=True)
-    audio_path = audio_cache_dir / f"{video_path.stem}.wav"
+    # Usa sempre o video_id como base
+    video_id = video_path.stem
+    audio_path = audio_cache_dir / f"{video_id}.wav"
     if audio_path.exists():
         return audio_path
     try:

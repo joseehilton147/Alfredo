@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         f.write(html)
     return html_path
 
-def create_html_directly(md_content: str, title: str, output_dir: Path) -> Path:
+def create_html_directly(md_content: str, title: str, output_dir: Path, output_filename: str = None) -> Path:
     """Cria um arquivo HTML diretamente do conteúdo markdown, sem arquivo intermediário."""
     html_content = markdown.markdown(
         md_content,
@@ -236,7 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>'''
     page_title = title or "Resumo"
     html = f'<!DOCTYPE html><html><head><meta charset="utf-8"><title>{page_title}</title>{css}</head><body>{html_content}{js}</body></html>'
-    html_path = output_dir / f'{title}.html'
+    if output_filename is None:
+        output_filename = f'{title}.html'
+    html_path = output_dir / output_filename
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     return html_path

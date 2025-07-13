@@ -15,6 +15,8 @@ import time
 import json
 import contextlib
 import io
+import re
+import subprocess
 
 # Força encoding utf-8 no Windows para suportar emojis
 if sys.platform == 'win32':
@@ -96,18 +98,27 @@ async def retry_operation(operation, max_retries=3, operation_name="Operação")
             else:
                 raise e
 
-def save_transcription_cache(video_title: str, transcription: str):
-    """Salva transcrição em cache para reuso"""
+def extract_video_id(url: str) -> str:
+    patterns = [
+        r'(?:v=|\/)([0-9A-Za-z_-]{11})(?:[&?]|$)',
+        r'youtu\.be\/([0-9A-Za-z_-]{11})'
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    raise ValueError('Não foi possível extrair o video_id da URL.')
+
+def save_transcription_cache(video_id: str, transcription: str):
     cache_dir = Path('data/cache/transcriptions')
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / f'{video_title}.json'
+    cache_file = cache_dir / f'{video_id}.json'
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump({'transcription': transcription, 'timestamp': time.time()}, f, ensure_ascii=False)
 
-def load_transcription_cache(video_title: str) -> str:
-    """Carrega transcrição do cache se existir"""
+def load_transcription_cache(video_id: str) -> str:
     cache_dir = Path('data/cache/transcriptions')
-    cache_file = cache_dir / f'{video_title}.json'
+    cache_file = cache_dir / f'{video_id}.json'
     if cache_file.exists():
         try:
             with open(cache_file, 'r', encoding='utf-8') as f:
@@ -116,6 +127,22 @@ def load_transcription_cache(video_title: str) -> str:
         except:
             pass
     return None
+
+def get_video_title(url: str) -> str:
+    try:
+        result = subprocess.run(
+            ['yt-dlp', '--get-title', url],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=20
+        )
+        title = result.stdout.strip()
+        if title:
+            return title
+    except Exception:
+        pass
+    return 'video'
 
 @contextlib.contextmanager
 def suppress_stdout():
@@ -138,49 +165,25 @@ async def main():
     parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
     args = parser.parse_args()
 
-    video_path = None
-    audio_path = None
+    video_id = extract_video_id(args.url)
+    video_path = Path(f'data/input/youtube/{video_id}.mp4')
+    audio_path = Path(f'data/cache/audio/{video_id}.wav')
     spinner = ProgressSpinner()
+    ai_provider = None
+    transcription = None
     try:
-        safe_print('\n===============================================================')
-        safe_print(' Alfredo: Vou processar este video do YouTube para voce!')
-        safe_print('===============================================================\n')
-        
-        from commands.video.youtube_downloader import download_youtube_video
-        from commands.video.audio_analyzer import extract_audio
-
-        # Caminho esperado do video
-        from urllib.parse import urlparse, parse_qs
-        import re
-        video_id = None
-        url_data = urlparse(args.url)
-        if 'youtube' in url_data.netloc or 'youtu.be' in url_data.netloc:
-            if 'v' in parse_qs(url_data.query):
-                video_id = parse_qs(url_data.query)['v'][0]
-            else:
-                # Para links do tipo youtu.be/VIDEOID
-                video_id = url_data.path.split('/')[-1]
-        video_title = None
-        video_dir = Path('data/input/youtube')
-        if video_id:
-            # Busca arquivo de video ja baixado
-            for f in video_dir.glob(f'*{video_id}*.mp4'):
-                video_path = f
-                video_title = f.stem
-                break
-        
         # ETAPA 1: DOWNLOAD DO VIDEO
         safe_print('ETAPA 1: Download do Video')
-        if not video_path or not video_path.exists():
+        if not video_path.exists():
             safe_print('Baixando video do YouTube...')
             spinner = ProgressSpinner('Baixando')
             spinner.start()
             try:
                 async def download_operation():
                     with suppress_stdout():
-                        return download_youtube_video(args.url)
-                video_path = await retry_operation(download_operation, 3, 'Download do video')
-                video_title = Path(video_path).stem
+                        from commands.video.youtube_downloader import download_youtube_video
+                        return download_youtube_video(args.url, output_dir=video_path.parent, output_filename=f'{video_id}.mp4')
+                await retry_operation(download_operation, 3, 'Download do video')
             finally:
                 spinner.stop()
             safe_print('Download concluido!')
@@ -188,10 +191,37 @@ async def main():
             safe_print('Reutilizando video ja baixado')
         safe_print('---------------------------------------------------------------\n')
 
+        # Obter informações do vídeo
+        video_title = get_video_title(args.url)
+        video_size = video_path.stat().st_size / (1024 * 1024) if video_path.exists() else 0
+        # Duração via ffprobe
+        def get_duration(path):
+            try:
+                result = subprocess.run([
+                    'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                    '-of', 'default=noprint_wrappers=1:nokey=1', str(path)
+                ], capture_output=True, text=True, timeout=20)
+                if result.returncode == 0:
+                    seconds = float(result.stdout.strip())
+                    m = int(seconds // 60)
+                    s = int(seconds % 60)
+                    return f'{m}:{s:02d}'
+            except Exception:
+                pass
+            return 'N/A'
+        video_duration = get_duration(video_path)
+
+        # Output informativo e colorido
+        print(f'\033[1;36m\n🎬 Alfredo: Pronto para processar seu vídeo!\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+        print(f'  📺  Título   : \033[1;37m{video_title}\033[0m')
+        print(f'  🆔  ID       : \033[1;32m{video_id}\033[0m')
+        print(f'  ⏱️  Duração  : \033[1;35m{video_duration} min\033[0m')
+        print(f'  💾  Tamanho  : \033[1;34m{video_size:.2f} MB\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
+
         # ETAPA 2: EXTRACAO DE AUDIO
         safe_print('ETAPA 2: Extracao de Audio')
-        audio_dir = Path('data/cache/audio')
-        audio_path = audio_dir / f'{video_title}.wav'
         if not audio_path.exists():
             safe_print('Extraindo audio do video...')
             spinner = ProgressSpinner('Processando audio')
@@ -199,56 +229,73 @@ async def main():
             try:
                 async def extract_operation():
                     with suppress_stdout():
+                        from commands.video.audio_analyzer import extract_audio
                         return extract_audio(video_path)
-                audio_path = await retry_operation(extract_operation, 3, 'Extracao de audio')
+                await retry_operation(extract_operation, 3, 'Extracao de audio')
             finally:
                 spinner.stop()
-            safe_print('Audio extraido com sucesso!')
+            audio_size = audio_path.stat().st_size / (1024 * 1024) if audio_path.exists() else 0
+            audio_duration = get_duration(audio_path)
+            print(f'\033[1;36m\n🎵 Áudio extraído!\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+            print(f'  📁  Arquivo  : \033[1;37m{audio_path.name}\033[0m')
+            print(f'  💾  Tamanho  : \033[1;34m{audio_size:.2f} MB\033[0m')
+            print(f'  ⏱️  Duração  : \033[1;35m{audio_duration} min\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
         else:
             safe_print('Reutilizando audio ja extraido')
         safe_print('---------------------------------------------------------------\n')
 
         # ETAPA 3: TRANSCRICAO
         safe_print('ETAPA 3: Transcricao do Audio')
-        transcription = load_transcription_cache(video_title)
+        transcription = load_transcription_cache(video_id)
         if transcription:
             safe_print('Reutilizando transcricao do cache')
+            ai_provider_name = args.provider or 'groq'
+            from core.provider_factory import get_ai_provider
+            ai_provider = get_ai_provider(ai_provider_name)
         else:
             safe_print('Transcrevendo audio com IA...')
-            
-            # Tenta primeiro com o provider solicitado, depois fallback
             from core.provider_factory import get_ai_provider
             current_provider = args.provider or 'groq'
             fallback_provider = 'ollama' if current_provider == 'groq' else 'groq'
-            
-            transcription_success = False
-            for provider_name in [current_provider, fallback_provider]:
-                if transcription_success:
-                    break
-                
+            providers = [current_provider, fallback_provider]
+            for provider_name in providers:
                 safe_print(f'Usando provedor: {provider_name.title()}')
                 try:
-                    ai_provider = get_ai_provider(provider_name)
+                    temp_provider = get_ai_provider(provider_name)
                     spinner = ProgressSpinner(f'Transcrevendo com {provider_name.title()}')
                     spinner.start()
                     try:
                         async def transcribe_operation():
                             with suppress_stdout():
-                                return await ai_provider.transcribe(str(audio_path))
-                        transcription = await retry_operation(transcribe_operation, 3, 'Transcricao')
-                        save_transcription_cache(video_title, transcription)
-                        transcription_success = True
+                                return await temp_provider.transcribe(str(audio_path))
+                        result = await retry_operation(transcribe_operation, 3, 'Transcricao')
+                        if result:
+                            transcription = result
+                            ai_provider = temp_provider
+                            save_transcription_cache(video_id, transcription)
+                            safe_print('Transcricao concluida!')
+                            break
                     finally:
                         spinner.stop()
-                    safe_print('Transcricao concluida!')
-                    break
                 except Exception as e:
                     spinner.stop()
                     safe_print(f'Falha com {provider_name.title()}: {str(e)[:50]}...')
                     if provider_name != fallback_provider:
                         safe_print(f'Tentando com {fallback_provider.title()}...')
-            if not transcription_success:
-                raise Exception('Todos os provedores de IA falharam na transcricao')
+            if not transcription or not ai_provider:
+                raise Exception('Todos os provedores de IA falharam na transcricao. Não é possível prosseguir para a sumarização.')
+        # Painel informativo da transcrição
+        if transcription:
+            word_count = len(transcription.split())
+            char_count = len(transcription)
+            print(f'\033[1;36m\n📝 Transcrição pronta!\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+            print(f'  🤖  Provedor : \033[1;32m{ai_provider.__class__.__name__}\033[0m')
+            print(f'  🔤  Caracteres: \033[1;37m{char_count}\033[0m')
+            print(f'  📄  Palavras : \033[1;34m{word_count}\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
         safe_print('---------------------------------------------------------------\n')
 
         # ETAPA 4: GERACAO DO RESUMO
@@ -263,7 +310,16 @@ async def main():
             summary = await retry_operation(summarize_operation, 3, 'Geracao de resumo')
         finally:
             spinner.stop()
-        safe_print('Resumo criado com sucesso!')
+        # Painel informativo do resumo
+        if summary:
+            summary_lines = summary.strip().splitlines()
+            preview = '\n'.join(summary_lines[:5])
+            print(f'\033[1;36m\n📚 Resumo gerado!\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+            print(f'  🔤  Linhas   : \033[1;37m{len(summary_lines)}\033[0m')
+            print(f'  📄  Preview  :')
+            print(f'\033[1;37m{preview}\033[0m')
+            print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
         safe_print('---------------------------------------------------------------\n')
 
         # FINALIZACAO
@@ -271,11 +327,17 @@ async def main():
         safe_print('Gerando HTML...')
         output_dir = Path('data/output/summaries/youtube')
         output_dir.mkdir(parents=True, exist_ok=True)
-        
         from services.markdown_utils import create_html_directly
-        html_path = create_html_directly(summary, video_title, output_dir)
+        html_path = output_dir / f'{video_id}.html'
+        html_path = create_html_directly(summary, video_title, output_dir, output_filename=f'{video_id}.html')
+        html_size = html_path.stat().st_size / 1024 if html_path.exists() else 0
         html_url = html_path.resolve().as_uri()
-
+        print(f'\033[1;36m\n🌐 HTML gerado!\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
+        print(f'  📄  Arquivo  : \033[1;37m{html_path.name}\033[0m')
+        print(f'  💾  Tamanho  : \033[1;34m{html_size:.2f} KB\033[0m')
+        print(f'  🌍  Caminho  : \033[1;32m{html_url}\033[0m')
+        print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m\n')
         safe_print('Abrindo no navegador...')
         from services.open_in_browser import open_in_browser
         open_in_browser(html_url)
@@ -284,19 +346,16 @@ async def main():
         safe_print('===============================================================')
         safe_print('Processo concluido com sucesso!')
         safe_print(f'O resumo foi aberto no seu navegador para leitura.')
-        safe_print(f'Arquivo salvo: {html_path.name}')
+        safe_print(f'Arquivo salvo: {video_id}.html')
         safe_print('===============================================================')
 
     except Exception as e:
         safe_print('\n===============================================================')
         safe_print('Processo interrompido')
         safe_print(f'Erro: {str(e)}')
-        safe_print(f'Sugestao: Verifique sua conexao e tente novamente')
         safe_print('===============================================================')
     finally:
         import os
-        # Remove apenas o arquivo de áudio temporário após sucesso COMPLETO
-        # Mantém vídeo e transcrição para reuso futuro
         try:
             if audio_path and isinstance(audio_path, Path) and audio_path.exists():
                 os.remove(audio_path)
