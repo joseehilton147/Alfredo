@@ -29,6 +29,10 @@ pathlib2>=2.3.7           # Compatibilidade de caminhos
 # ffmpeg deve ser instalado separadamente no sistema
 # Ollama deve ser instalado separadamente para análise avançada
 
+# === IA PROVIDERS ===
+groq>=0.4.0               # API do Groq para IA
+python-dotenv>=1.0.0      # Carregamento de variáveis de ambiente
+
 # === INSTALAÇÃO COMPLETA ===
 # 1. pip install -r requirements.txt
 # 2. pip install openai-whisper (se não incluído)

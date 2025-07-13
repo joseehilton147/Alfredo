@@ -9,6 +9,8 @@ Ponto de entrada para todos os comandos
 import os
 import sys
 import argparse
+import asyncio
+import inspect
 from pathlib import Path
 
 # Adiciona o diretório do projeto ao path
@@ -24,21 +26,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 COMANDOS ENTERPRISE:
-  videol <arquivo>    # Resumir vídeo (análise visual)
-  audioa <arquivo>    # Resumir áudio (muito mais rápido!)
-  videoy <url>        # Resumir vídeo do YouTube  
-  youtube <url>       # Baixar vídeo do YouTube
-  yt+ia <url>         # YouTube + IA (download + resumo)
-  limpar [nivel]      # Limpeza inteligente (1-5)
+  resumir-video-local <arquivo>   # Resumir vídeo local (análise visual)
+  resumir-audio-local <arquivo>   # Resumir áudio local (rápido)
+  resumir-yt <url>                # Resumir vídeo do YouTube (download + IA)
+  baixar-yt <url>                 # Baixar vídeo do YouTube
+  limpar-cache [nível]            # Limpeza inteligente de cache (1-5)
 
 EXEMPLOS:
-  Alfredo                    # Sistema interativo completo
-  Alfredo audioa video.mp4   # Análise rápida de áudio
-  Alfredo videol video.mp4   # Análise visual completa
-  Alfredo videoy <url>       # Resumir YouTube
-  Alfredo yt+ia <url>        # YouTube completo
-  Alfredo limpar 3          # Limpeza moderada
-  Alfredo --list            # Listar comandos
+  Alfredo                        # Sistema interativo completo
+  Alfredo resumir-audio-local video.mp4   # Resumo rápido de áudio
+  Alfredo resumir-video-local video.mp4   # Resumo visual completo
+  Alfredo resumir-yt <url>                # Resumir YouTube
+  Alfredo baixar-yt <url>                 # Baixar YouTube
+  Alfredo limpar-cache 3                  # Limpeza moderada
+  Alfredo --list                         # Listar comandos
         """
     )
     
@@ -47,17 +48,17 @@ EXEMPLOS:
     parser.add_argument('--list', '-l', action='store_true', help='Listar comandos disponíveis')
     parser.add_argument('--test', '-t', action='store_true', help='Executar diagnóstico')
     parser.add_argument('--version', '-v', action='store_true', help='Mostrar versão')
+    parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
     
     args = parser.parse_args()
     
     # Comandos enterprise diretos
     enterprise_commands = {
-        'videol': 'commands.video.local_video',
-        'audioa': 'commands.video.audio_analyzer',
-        'videoy': 'commands.video.youtube_ai', 
-        'youtube': 'commands.video.youtube_downloader',
-        'yt+ia': 'commands.video.youtube_ai',
-        'limpar': 'commands.clean_command'
+        'resumir-video-local': 'commands.video.local_video',
+        'resumir-audio-local': 'commands.video.audio_analyzer',
+        'resumir-yt': 'commands.video.youtube_ai',
+        'baixar-yt': 'commands.video.youtube_downloader',
+        'limpar-cache': 'commands.clean_command'
     }
     
     try:
@@ -89,14 +90,23 @@ EXEMPLOS:
                 try:
                     import importlib
                     module = importlib.import_module(module_path)
-                    
-                    # Adiciona argumentos aos sys.argv para o comando processar
+
+                    # Configura sys.argv para o comando processar os argumentos
                     sys.argv = ['Alfredo.py'] + args.args
-                    
-                    # Executa comando
+                    if args.provider:
+                        sys.argv.extend(['--provider', args.provider])
+
+                    # Verifica se a função main existe
                     if hasattr(module, 'main'):
-                        result = module.main()
-                        sys.exit(0 if result != False else 1)
+                        main_func = getattr(module, 'main')
+
+                        # Verifica se a função main é assíncrona
+                        if inspect.iscoroutinefunction(main_func):
+                            result = asyncio.run(main_func())
+                        else:
+                            result = main_func()
+
+                        sys.exit(0 if result is not False else 1)
                     else:
                         print(f"❌ Comando {cmd} não possui função main()")
                         sys.exit(1)
@@ -134,19 +144,18 @@ def show_enterprise_commands():
     print()
     print("📋 COMANDOS ENTERPRISE:")
     print("--" * 25)
-    print("  audioa <arquivo>     � Análise rápida de áudio")
-    print("  videol <arquivo>     🎬 Análise visual completa")
-    print("  videoy <url>         📹 Resumir vídeo YouTube")
-    print("  youtube <url>        ⬇️ Baixar vídeo YouTube")
-    print("  yt+ia <url>          🚀 YouTube + IA completo")
-    print("  limpar [1-5]         🧹 Limpeza inteligente")
+    print("  resumir-audio-local <arquivo>   🎧 Resumir áudio local (rápido)")
+    print("  resumir-video-local <arquivo>   🎬 Resumir vídeo local (visual)")
+    print("  resumir-yt <url>                📹 Resumir vídeo do YouTube (download + IA)")
+    print("  baixar-yt <url>                 ⬇️  Baixar vídeo do YouTube")
+    print("  limpar-cache [1-5]              🧹 Limpeza inteligente de cache")
     print()
     print("💡 EXEMPLOS:")
-    print("  Alfredo audioa meu_video.mp4    # RÁPIDO: só áudio")
-    print("  Alfredo videol meu_video.mp4    # COMPLETO: visual")
-    print("  Alfredo videoy https://youtube.com/watch?v=...")
-    print("  Alfredo yt+ia https://youtube.com/watch?v=...")
-    print("  Alfredo limpar 3")
+    print("  Alfredo resumir-audio-local meu_video.mp4    # RÁPIDO: só áudio")
+    print("  Alfredo resumir-video-local meu_video.mp4    # COMPLETO: visual")
+    print("  Alfredo resumir-yt https://youtube.com/watch?v=...")
+    print("  Alfredo baixar-yt https://youtube.com/watch?v=...")
+    print("  Alfredo limpar-cache 3")
     print()
 
 if __name__ == "__main__":

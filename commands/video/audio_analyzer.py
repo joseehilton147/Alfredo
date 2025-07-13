@@ -41,52 +41,38 @@ LLM_MODEL = "llama3:8b"
 AUDIO_EXTENSIONS = [".mp4", ".avi", ".mov", ".mkv", ".webm", ".mp3", ".wav", ".m4a", ".flac"]
 
 def extract_audio(video_path: Path) -> Optional[Path]:
-    """Extrai áudio do vídeo usando ffmpeg"""
-    print(f"🎵 Alfredo: Extraindo áudio de '{video_path.name}'...")
-    
-    # Criar pasta de cache para áudio
+    """Extrai audio do video usando ffmpeg"""
+    # NUNCA imprime nada, suprime todo output
     audio_cache_dir = paths.CACHE_ROOT / "audio"
     audio_cache_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Nome do arquivo de áudio
     audio_path = audio_cache_dir / f"{video_path.stem}.wav"
-    
     if audio_path.exists():
-        print(f"♻️ Alfredo: Ótimo! Já extraí este áudio antes!")
         return audio_path
-    
     try:
-        # Comando ffmpeg para extrair áudio
         cmd = [
             "ffmpeg", "-i", str(video_path),
-            "-acodec", "pcm_s16le",  # 16-bit PCM
-            "-ar", "16000",          # 16kHz (padrão Whisper)
-            "-ac", "1",              # Mono
-            "-y",                    # Sobrescrever
+            "-acodec", "pcm_s16le",
+            "-ar", "16000",
+            "-ac", "1",
+            "-y",
             str(audio_path)
         ]
-        
-        print("🔄 Alfredo: Processando o áudio...")
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        
         if result.returncode == 0 and audio_path.exists():
-            size_mb = audio_path.stat().st_size / (1024 * 1024)
-            print(f"✅ Alfredo: Áudio extraído com sucesso! ({size_mb:.1f} MB)")
             return audio_path
         else:
-            print(f"😕 Alfredo: Ops, tive um problema na extração: {result.stderr}")
-            return None
-            
+            import re
+            err = result.stderr or result.stdout or 'Erro desconhecido'
+            err = re.sub(r'[^\x20-\x7E]+', '', err)
+            raise Exception(f'Erro na extracao de audio: {err}')
     except subprocess.TimeoutExpired:
-        print("⏰ Alfredo: A extração demorou demais - seu vídeo deve ser bem longo!")
-        return None
+        raise Exception('A extracao demorou demais - video muito longo')
     except FileNotFoundError:
-        print("❌ Alfredo: Não encontrei o ffmpeg no seu sistema!")
-        print("💡 Dica: Baixe em https://ffmpeg.org/download.html")
-        return None
+        raise Exception('ffmpeg nao encontrado no sistema')
     except Exception as e:
-        print(f"😅 Alfredo: Algo inesperado aconteceu: {e}")
-        return None
+        import re
+        msg = re.sub(r'[^\x20-\x7E]+', '', str(e))
+        raise Exception(msg)
 
 def transcribe_audio(audio_path: Path) -> Optional[str]:
     """Transcreve áudio usando Whisper local ou online"""

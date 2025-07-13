@@ -19,6 +19,10 @@ data/input/local/*.wav
 data/input/local/*.m4a
 data/input/local/*.flac
 
+# ==== IGNORAR TODA A PASTA DATA (exceto README) ====
+data/*
+!data/README.md
+
 # ==== CACHE E PROCESSAMENTO ====
 # Cache de áudio extraído
 data/cache/audio/
