@@ -4,6 +4,31 @@
 
 Um assistente pessoal para transformar conteúdo audiovisual em resumos estruturados e insights educativos. O Alfredo utiliza tecnologias como Whisper (OpenAI) e Ollama para processar e analisar conteúdo de forma rápida e eficiente.
 
+## 🏗️ **Nova Arquitetura Modular**
+
+O Alfredo foi refatorado para uma **arquitetura modular e escalável**:
+
+```
+/alfredo/
+├── cli/                  # Comandos CLI independentes 
+├── api/                  # Futuras APIs REST/web
+├── core/                 # Lógica de negócio central
+├── integrations/         # Integrações externas (Groq, Ollama)
+├── config/              # Configurações e i18n
+├── data/                # Dados (entrada, saída, cache)
+├── tests/               # Testes (unit, integration, e2e)
+├── scripts/             # Scripts utilitários
+└── legacy/              # Código para migração
+```
+
+### 🎯 **Benefícios da Nova Estrutura**
+
+- **🔧 Comandos CLI Independentes**: Cada comando pode ser executado isoladamente
+- **🌍 Internacionalização**: Suporte nativo a múltiplos idiomas (PT/EN)
+- **🔌 Integrações Modulares**: Provedores de IA separados e intercambiáveis  
+- **🧪 Testes Robustos**: Cobertura de testes por domínio e integração
+- **📈 Escalabilidade**: Estrutura preparada para APIs web futuras
+
 ## ⚠️ **Aviso Importante**
 
 Este projeto **NÃO compete** com LLMs frontier como GPT-4, Claude ou Gemini. É uma solução experimental usando ferramentas **totalmente open-source** e está em **fase inicial de desenvolvimento**. O objetivo é aprender e explorar as possibilidades das ferramentas abertas disponíveis.

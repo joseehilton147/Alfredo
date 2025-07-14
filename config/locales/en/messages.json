@@ -1,0 +1,21 @@
+{
+  "cli": {
+    "welcome": "🤖 Alfredo AI - Your Personal Assistant",
+    "commands": {
+      "clean": "🧹 Clean cache and temporary files",
+      "groq_status": "🔍 Check Groq API status",
+      "pc_info": "💻 Display PC information",
+      "model_config": "🧠 Configure AI models",
+      "test_runner": "🧪 Run system tests",
+      "video_local": "🎬 Analyze local videos",
+      "audio_analyzer": "🎧 Analyze audio files",
+      "youtube_ai": "📹 Download and analyze YouTube videos",
+      "youtube_downloader": "⬇️ Download YouTube videos"
+    },
+    "messages": {
+      "command_not_found": "❌ Command '{command}' not found!",
+      "goodbye": "🤖 Alfredo: Goodbye! 👋",
+      "error": "❌ Unexpected error: {error}"
+    }
+  }
+}

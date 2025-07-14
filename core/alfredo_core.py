@@ -36,8 +36,33 @@ class AlfredoCore:
         self.commands = {
             "resumir-video": {
                 "description": "📹 Analisar e resumir vídeos locais",
-                "module": "commands.video_summarizer",
+                "module": "commands.video.local_video",
                 "help": "Extrai frames-chave de vídeos e gera resumos usando IA"
+            },
+            "limpar": {
+                "description": "🧹 Limpar arquivos e pastas",
+                "module": "commands.clean_command",
+                "help": "Sistema de limpeza com diferentes níveis"
+            },
+            "groq-status": {
+                "description": "🔍 Verificar status da API Groq",
+                "module": "commands.groq_status",
+                "help": "Mostra status atual da API Groq e rate limits"
+            },
+            "info-pc": {
+                "description": "💻 Exibir informações do PC",
+                "module": "commands.pc_info",
+                "help": "Exibe informações detalhadas do sistema"
+            },
+            "configurar-modelos": {
+                "description": "🧠 Configurar modelos de IA",
+                "module": "commands.model_config_command",
+                "help": "Descobre e configura automaticamente os melhores modelos"
+            },
+            "testes": {
+                "description": "🧪 Executar testes do sistema",
+                "module": "commands.test_runner",
+                "help": "Executa bateria completa de testes"
             },
             "test": {
                 "description": "🧪 Executar diagnóstico do sistema",

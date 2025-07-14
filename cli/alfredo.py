@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-🤖 ALFREDO AI - Assistente Pessoal
-==================================
-Sistema principal do assistente Alfredo
-Ponto de entrada para todos os comandos
+🤖 ALFREDO AI - CLI Interface
+=============================
+Main CLI interface for Alfredo AI commands
 """
 
 import os
@@ -13,8 +12,8 @@ import asyncio
 import inspect
 from pathlib import Path
 
-# Adiciona o diretório do projeto ao path
-project_dir = Path(__file__).parent.absolute()
+# Add project root to path (go up one level from cli/)
+project_dir = Path(__file__).parent.parent.absolute()
 sys.path.insert(0, str(project_dir))
 
 def main():
@@ -52,13 +51,21 @@ EXEMPLOS:
     
     args = parser.parse_args()
     
-    # Comandos enterprise diretos
+    # Import i18n for localization
+    from config.i18n import t
+    
+    # Enterprise commands mapping to new CLI structure
     enterprise_commands = {
-        'resumir-video-local': 'commands.video.local_video',
-        'resumir-audio-local': 'commands.video.audio_analyzer',
-        'resumir-yt': 'commands.video.youtube_ai',
-        'baixar-yt': 'commands.video.youtube_downloader',
-        'limpar-cache': 'commands.clean_command'
+        'resumir-video-local': 'cli.video_local',
+        'resumir-audio-local': 'cli.audio_analyzer',
+        'resumir-yt': 'cli.youtube_ai',
+        'baixar-yt': 'cli.youtube_downloader',
+        'limpar-cache': 'cli.clean',
+        'limpar': 'cli.clean',
+        'groq-status': 'cli.groq_status',
+        'info-pc': 'cli.pc_info',
+        'configurar-modelos': 'cli.model_config',
+        'testes': 'cli.test_runner'
     }
     
     try:
@@ -136,26 +143,32 @@ EXEMPLOS:
         sys.exit(1)
 
 def show_enterprise_commands():
-    """Mostra comandos enterprise disponíveis"""
+    """Show available enterprise commands with localization"""
+    from config.i18n import t
+    
     print("🤖 " + "=" * 50)
-    print("   ALFREDO AI - Enterprise Commands")
+    print(f"   {t('cli.welcome')}")
     print("   Sistema de Vídeo Inteligente")
     print("=" * 52)
     print()
-    print("📋 COMANDOS ENTERPRISE:")
+    print("📋 COMANDOS CLI INDEPENDENTES:")
     print("--" * 25)
-    print("  resumir-audio-local <arquivo>   🎧 Resumir áudio local (rápido)")
-    print("  resumir-video-local <arquivo>   🎬 Resumir vídeo local (visual)")
-    print("  resumir-yt <url>                📹 Resumir vídeo do YouTube (download + IA)")
-    print("  baixar-yt <url>                 ⬇️  Baixar vídeo do YouTube")
-    print("  limpar-cache [1-5]              🧹 Limpeza inteligente de cache")
+    print(f"  resumir-audio-local <arquivo>   {t('cli.commands.audio_analyzer')}")
+    print(f"  resumir-video-local <arquivo>   {t('cli.commands.video_local')}")
+    print(f"  resumir-yt <url>                {t('cli.commands.youtube_ai')}")
+    print(f"  baixar-yt <url>                 {t('cli.commands.youtube_downloader')}")
+    print(f"  limpar-cache [1-5]              {t('cli.commands.clean')}")
+    print(f"  groq-status                     {t('cli.commands.groq_status')}")
+    print(f"  info-pc                         {t('cli.commands.pc_info')}")
+    print(f"  configurar-modelos              {t('cli.commands.model_config')}")
+    print(f"  testes                          {t('cli.commands.test_runner')}")
     print()
     print("💡 EXEMPLOS:")
-    print("  Alfredo resumir-audio-local meu_video.mp4    # RÁPIDO: só áudio")
-    print("  Alfredo resumir-video-local meu_video.mp4    # COMPLETO: visual")
-    print("  Alfredo resumir-yt https://youtube.com/watch?v=...")
-    print("  Alfredo baixar-yt https://youtube.com/watch?v=...")
-    print("  Alfredo limpar-cache 3")
+    print("  alfredo resumir-audio-local meu_video.mp4    # RÁPIDO: só áudio")
+    print("  alfredo resumir-video-local meu_video.mp4    # COMPLETO: visual")
+    print("  alfredo resumir-yt https://youtube.com/watch?v=...")
+    print("  alfredo baixar-yt https://youtube.com/watch?v=...")
+    print("  alfredo limpar-cache 3")
     print()
 
 if __name__ == "__main__":
