@@ -48,29 +48,28 @@ Este projeto **NÃO compete** com LLMs frontier como GPT-4, Claude ou Gemini. É
 
 ```bash
 # ANÁLISE RÁPIDA (Recomendado)
-python Alfredo.py audioa <arquivo>     # Análise de áudio (3-5 min)
+alfredo resumir-audio-local <arquivo>     # Análise de áudio (3-5 min)
 
 # ANÁLISE COMPLETA
-python Alfredo.py videol <arquivo>     # Análise visual (10+ min)
+alfredo resumir-video-local <arquivo>     # Análise visual (10+ min)
 
 # YOUTUBE
-python Alfredo.py youtube <url>        # Baixar vídeo do YouTube
-python Alfredo.py videoy <url>         # Baixar + analisar YouTube
-python Alfredo.py yt+ia <url>          # YouTube completo (download + IA)
+alfredo baixar-yt <url>                   # Baixar vídeo do YouTube
+alfredo resumir-yt <url>                  # Baixar + analisar YouTube
 
 # UTILIDADES
-python Alfredo.py limpar [1-5]         # Limpeza inteligente
-python Alfredo.py --help               # Ajuda
-python Alfredo.py --list               # Listar comandos
+alfredo limpar-cache [1-5]                # Limpeza inteligente
+alfredo --help                            # Ajuda
+alfredo --list                            # Listar comandos
 ```
 
 ### 🎯 **Comandos Mais Usados**
 
 | Comando | Tempo | Descrição | Recomendação |
 |---------|--------|-----------|--------------|
-| `audioa` | 3-5 min | Análise só do áudio | ⭐ **Mais rápido** |
-| `videol` | 10+ min | Análise visual completa | Para conteúdo visual específico |
-| `videoy` | 5-15 min | YouTube + análise | Para vídeos online |
+| `resumir-audio-local` | 3-5 min | Análise só do áudio | ⭐ **Mais rápido** |
+| `resumir-video-local` | 10+ min | Análise visual completa | Para conteúdo visual específico |
+| `resumir-yt` | 5-15 min | YouTube + análise | Para vídeos online |
 
 ## 📦 **Instalação Completa**
 
@@ -87,7 +86,7 @@ git clone https://github.com/joseehilton147/Alfredo.git
 cd Alfredo
 ```
 
-### **Passo 2: Instalar Dependências Python**
+### **Passo 2: Instalar o Projeto**
 
 ```bash
 # Criar ambiente virtual (recomendado)
@@ -99,11 +98,10 @@ venv\Scripts\activate
 # Linux/Mac:
 source venv/bin/activate
 
-# Instalar dependências
-pip install -r requirements.txt
+# Instalar o projeto em modo desenvolvimento
+pip install -e .
 
-# Instalar Whisper para transcrição de áudio
-pip install openai-whisper
+# Isso instalará todas as dependências e criará os comandos CLI
 ```
 
 ### **Passo 3: Instalar ffmpeg**
@@ -142,31 +140,52 @@ ollama serve
 
 ```bash
 # Verificar se tudo está funcionando
-python Alfredo.py --test
+alfredo --test
+
+# Listar comandos disponíveis
+alfredo --list
 
 # Testar com arquivo de exemplo
-python Alfredo.py audioa exemplo.mp4
+alfredo resumir-audio-local exemplo.mp4
 ```
 
 ## 📁 **Estrutura do Projeto**
 
 ```
-Alfredo/
-├── 🤖 Alfredo.py              # Entrada principal
-├── 📋 requirements.txt        # Dependências Python
+alfredo/
+├── 📦 pyproject.toml          # Configuração do projeto
+├── 📋 requirements.txt        # Dependências Python (legacy)
 ├── 📖 README.md              # Este arquivo
-├── 🔧 config/
-│   └── paths.py              # Configuração de caminhos
-├── 🎬 commands/
+├── 🎯 cli/                   # Comandos CLI independentes
+│   ├── alfredo.py            # Interface principal
+│   ├── audio_analyzer.py     # Análise de áudio
+│   ├── video_local.py        # Análise visual local
+│   ├── youtube_ai.py         # YouTube + IA
+│   └── clean.py              # Limpeza de cache
+├── 🧠 core/                  # Lógica de negócio central
+│   ├── alfredo_core.py       # Sistema central
+│   └── prompt_service.py     # Gerenciamento de prompts
+├── 🔌 integrations/          # Integrações externas
+│   ├── groq/                 # Provedor Groq
+│   └── ollama/               # Provedor Ollama
+├── ⚙️ config/                # Configurações e i18n
+│   ├── settings.py           # Configurações
+│   ├── i18n.py               # Internacionalização
+│   └── locales/              # Traduções (PT/EN)
+├── 🎬 commands/              # Comandos backend
 │   └── video/
-│       ├── audio_analyzer.py  # Análise de áudio (Whisper)
-│       ├── local_video.py     # Análise visual (frames)
-│       ├── youtube_ai.py      # Análise YouTube
-│       └── youtube_downloader.py
-├── 📂 data/
-│   ├── input/local/          # Coloque seus vídeos aqui
+│       ├── audio_analyzer.py  # Análise de áudio
+│       ├── local_video.py     # Análise visual
+│       └── youtube_ai.py      # Análise YouTube
+├── 📂 data/                  # Dados e cache
+│   ├── input/local/          # Vídeos de entrada
 │   ├── output/summaries/     # Resumos gerados
-│   └── cache/               # Arquivos temporários
+│   └── cache/                # Arquivos temporários
+├── 🧪 tests/                 # Testes automatizados
+│   ├── unit/                 # Testes unitários
+│   ├── integration/          # Testes de integração
+│   └── e2e/                  # Testes end-to-end
+└── 🗂️ legacy/                # Código legado (migração)
 └── 🗑️ _temp/                 # Cache antigo (será migrado)
 ```
 
@@ -179,7 +198,7 @@ Alfredo/
 cp meu_video.mp4 data/input/local/
 
 # Execute análise de áudio (mais rápida)
-python Alfredo.py audioa meu_video.mp4
+alfredo resumir-audio-local meu_video.mp4
 
 # O resumo será salvo em:
 # data/output/summaries/audio/meu_video.md
@@ -189,7 +208,7 @@ python Alfredo.py audioa meu_video.mp4
 
 ```bash
 # Para análise visual detalhada
-python Alfredo.py videol meu_video.mp4
+alfredo resumir-video-local meu_video.mp4
 
 # Resultado em:
 # data/output/summaries/visual/meu_video.md
@@ -199,20 +218,20 @@ python Alfredo.py videol meu_video.mp4
 
 ```bash
 # Analisar vídeo do YouTube
-python Alfredo.py videoy "https://youtube.com/watch?v=..."
+alfredo resumir-yt "https://youtube.com/watch?v=..."
 
-# Download + análise completa
-python Alfredo.py yt+ia "https://youtube.com/watch?v=..."
+# Apenas baixar vídeo
+alfredo baixar-yt "https://youtube.com/watch?v=..."
 ```
 
 ### **4. Limpeza**
 
 ```bash
 # Limpeza leve (nível 1)
-python Alfredo.py limpar 1
+alfredo limpar-cache 1
 
 # Limpeza pesada (nível 5)
-python Alfredo.py limpar 5
+alfredo limpar-cache 5
 ```
 
 ## ⚙️ **Configuração**
@@ -248,19 +267,22 @@ OUTPUT_ROOT = Path("resultados")   # Pasta de saída
 
 ```bash
 # Verificar status dos serviços
-python Alfredo.py --test
+alfredo --test
 
-# Ver logs detalhados
-python Alfredo.py audioa video.mp4 --verbose
+# Ver informações detalhadas do sistema
+alfredo info-pc
+
+# Verificar status da API Groq
+alfredo groq-status
 ```
 
 ## 📊 **Performance**
 
 | Tipo de Análise | Tempo Médio | Qualidade | Recomendação |
 |------------------|-------------|-----------|--------------|
-| **Áudio** (audioa) | 3-5 min | ⭐⭐⭐⭐ | Uso geral |
-| **Visual** (videol) | 10-15 min | ⭐⭐⭐⭐⭐ | Conteúdo visual específico |
-| **YouTube** (videoy) | 5-10 min | ⭐⭐⭐⭐ | Vídeos online |
+| **Áudio** (resumir-audio-local) | 3-5 min | ⭐⭐⭐⭐ | Uso geral |
+| **Visual** (resumir-video-local) | 10-15 min | ⭐⭐⭐⭐⭐ | Conteúdo visual específico |
+| **YouTube** (resumir-yt) | 5-10 min | ⭐⭐⭐⭐ | Vídeos online |
 
 ## 🤝 **Contribuição**
 

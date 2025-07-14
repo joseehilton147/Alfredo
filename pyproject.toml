@@ -1,0 +1,48 @@
+[project]
+name = "alfredo-ai"
+version = "1.0.0"
+description = "Alfredo AI Assistant - Sistema inteligente para análise e resumo de vídeos"
+authors = [
+    { name = "Alfredo Team", email = "dev@alfredo-ai.com" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "integrations*", "config*", "cli*", "commands*", "api*"]
+exclude = ["legacy*", "tests*", "__pycache__*"]
+
+[tool.setuptools.package-data]
+"config" = ["prompts/*.md", "locales/**/*.json"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+
+[project.scripts]
+alfredo = "cli.alfredo:main"
+alfredo-groq-status = "cli.groq_status:main"
+alfredo-clean = "cli.clean:main"

@@ -6,12 +6,8 @@ import groq
 from pathlib import Path
 from typing import Optional
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 from integrations.ai_provider import AIProvider
-from legacy.services_old.prompt_service import get_summary_prompt
+from core.prompt_service import get_summary_prompt
 from integrations.groq.monitor import groq_monitor
 
 def safe_print(text, end="\n", flush=False):

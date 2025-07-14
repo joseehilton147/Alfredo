@@ -4,12 +4,8 @@ import subprocess
 import whisper
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 from integrations.ai_provider import AIProvider
-from legacy.services_old.prompt_service import get_summary_prompt
+from core.prompt_service import get_summary_prompt
 
 class OllamaProvider(AIProvider):
     async def transcribe(self, audio_path: str) -> str:

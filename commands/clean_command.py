@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import List
 
 # Importa configuração de caminhos
-import sys
-sys.path.append(str(Path(__file__).parent.parent))
 from config.paths import paths
 
 # Informações do comando para o Alfredo Core
@@ -238,26 +236,30 @@ def main():
         return
     
     # Mostra estatísticas
-    print(f"\n📊 ANÁLISE DO DIRETÓRIO OUTPUT:")
+    print(f"\n📊 ANÁLISE DO DIRETÓRIO DATA:")
     print("=" * 40)
-    print(f"🗂️ Arquivos temporários: {stats['temp']['files']} arquivos, {stats['temp']['folders']} pastas ({format_size(stats['temp']['size'])})")
-    print(f"🎬 Vídeos YouTube: {stats['youtube']['files']} vídeos ({format_size(stats['youtube']['size'])})")
-    print(f"📄 Resumos: {stats['resumos']['files']} arquivos .md ({format_size(stats['resumos']['size'])})")
+    print(f"🗂️ Cache Frames: {stats['cache_frames']['files']} arquivos, {stats['cache_frames']['folders']} pastas ({format_size(stats['cache_frames']['size'])})")
+    print(f"⬇️ Cache Downloads: {stats['cache_downloads']['files']} arquivos ({format_size(stats['cache_downloads']['size'])})")
+    print(f"🎬 Vídeos YouTube: {stats['input_youtube']['files']} vídeos ({format_size(stats['input_youtube']['size'])})")
+    print(f"📄 Resumos Locais: {stats['summaries_local']['files']} arquivos .md ({format_size(stats['summaries_local']['size'])})")
+    print(f"📄 Resumos YouTube: {stats['summaries_youtube']['files']} arquivos .md ({format_size(stats['summaries_youtube']['size'])})")
     print(f"📦 TOTAL: {format_size(stats['total']['size'])}")
     
     # Menu de opções
     print(f"\n🧹 OPÇÕES DE LIMPEZA:")
     print("=" * 40)
-    print("  [1] 🗂️  Limpar apenas arquivos temporários (frames)")
-    print("  [2] 🎬 Limpar apenas vídeos do YouTube")
-    print("  [3] 📄 Limpar apenas resumos (.md)")
-    print("  [4] 🧹 Limpeza completa (tudo)")
-    print("  [5] 📊 Apenas analisar (não remover nada)")
+    print("  [1] 🗂️  Limpar cache de frames")
+    print("  [2] ⬇️  Limpar cache de downloads")
+    print("  [3] 🎬 Limpar vídeos do YouTube")
+    print("  [4] 📄 Limpar resumos locais")
+    print("  [5] 📄 Limpar resumos do YouTube")
+    print("  [6] 🧹 Limpeza completa (tudo)")
+    print("  [7] 📊 Apenas analisar (não remover nada)")
     print("  [q] ❌ Cancelar")
     
     while True:
         try:
-            choice = input(f"\n🤖 Alfredo: Que tipo de limpeza deseja? (1-5, q): ").strip().lower()
+            choice = input(f"\n🤖 Alfredo: Que tipo de limpeza deseja? (1-7, q): ").strip().lower()
             
             if choice in ['q', 'quit', 'cancelar', 'sair']:
                 print("👋 Alfredo: Limpeza cancelada!")
@@ -283,7 +285,13 @@ def main():
                 if size_removed > 0:
                     print(f"💾 Espaço liberado: {format_size(size_removed)}")
                 break
-            elif choice == '4':
+            elif choice == '5':
+                print(f"\n📄 LIMPEZA: Resumos YouTube")
+                print("=" * 30)
+                # Implementar limpeza de resumos YouTube
+                print("🤖 Alfredo: Funcionalidade em implementação.")
+                break
+            elif choice == '6':
                 print(f"\n🧹 LIMPEZA COMPLETA")
                 print("=" * 25)
                 confirm = input("⚠️ Alfredo: Tem certeza? Isso removerá TUDO! (s/N): ").strip().lower()
@@ -294,13 +302,13 @@ def main():
                 else:
                     print("🤖 Alfredo: Limpeza completa cancelada.")
                 break
-            elif choice == '5':
+            elif choice == '7':
                 print(f"\n📊 ANÁLISE CONCLUÍDA")
                 print("=" * 25)
                 print("🤖 Alfredo: Análise mostrada acima. Nenhum arquivo removido.")
                 break
             else:
-                print("❌ Opção inválida! Digite 1-5 ou 'q'")
+                print("❌ Opção inválida! Digite 1-7 ou 'q'")
                 
         except (EOFError, KeyboardInterrupt):
             print("\n👋 Alfredo: Limpeza cancelada!")

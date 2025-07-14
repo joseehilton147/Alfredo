@@ -81,9 +81,6 @@ class AlfredoCore:
         
         if not commands_dir.exists():
             return
-            
-        # Adiciona pasta commands ao path
-        sys.path.insert(0, str(commands_dir))
         
         # Carrega comandos do diretório principal commands/
         for file_path in commands_dir.glob("*.py"):
@@ -92,12 +89,17 @@ class AlfredoCore:
                 
             module_name = file_path.stem
             try:
-                module = importlib.import_module(module_name)
-                if hasattr(module, 'COMMAND_INFO'):
-                    command_info = module.COMMAND_INFO
-                    self.commands[command_info['name']] = {
-                        "description": command_info['description'],
-                        "module": f"commands.{module_name}",
+                # Usa importlib para carregar o módulo sem modificar sys.path
+                spec = importlib.util.spec_from_file_location(f"commands.{module_name}", file_path)
+                if spec and spec.loader:
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    
+                    if hasattr(module, 'COMMAND_INFO'):
+                        command_info = module.COMMAND_INFO
+                        self.commands[command_info['name']] = {
+                            "description": command_info['description'],
+                            "module": f"commands.{module_name}",
                         "function": command_info.get('function', 'main'),
                         "help": command_info.get('help', 'Sem descrição disponível'),
                         "category": command_info.get('category', 'geral')

@@ -44,6 +44,7 @@ class AlfredoPaths:
         
         # === CONFIGURAÇÃO ===
         self.CONFIG_ROOT = self.PROJECT_ROOT / "config"
+        self.PROMPTS_DIR = self.CONFIG_ROOT / "prompts"
         
         # === COMANDOS E NÚCLEO ===
         self.COMMANDS_ROOT = self.PROJECT_ROOT / "commands"

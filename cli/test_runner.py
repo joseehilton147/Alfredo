@@ -2,8 +2,16 @@
 """
 🧪 CLI Command: Test Runner
 ===========================
-Execute automated tests for Alfredo AI system.
+Run comprehensive system tests.
 """
+
+import sys
+from pathlib import Path
+
+from commands.test_runner import main
+
+if __name__ == "__main__":
+    main()
 
 import sys
 from pathlib import Path

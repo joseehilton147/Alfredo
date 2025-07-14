@@ -6,10 +6,7 @@ import sys
 import argparse
 from pathlib import Path
 
-# Adicionar o diretório raiz ao path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from services.groq_monitor import groq_monitor
+from integrations.groq.monitor import groq_monitor
 
 def main():
     """Mostra status atual da API Groq"""

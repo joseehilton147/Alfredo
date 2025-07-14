@@ -12,10 +12,6 @@ import asyncio
 import inspect
 from pathlib import Path
 
-# Add project root to path (go up one level from cli/)
-project_dir = Path(__file__).parent.parent.absolute()
-sys.path.insert(0, str(project_dir))
-
 def main():
     """Ponto de entrada principal do Alfredo"""
     
