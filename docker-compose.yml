@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  alfredo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alfredo-ai
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+      - ./.env:/app/.env
+    environment:
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: tail -f /dev/null  # Keep container running for development
+
+  alfredo-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alfredo-ai-dev
+    volumes:
+      - ./:/app
+      - /app/.venv
+    environment:
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    command: /bin/bash  # Interactive shell for development
+
+  alfredo-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alfredo-ai-test
+    volumes:
+      - ./:/app
+      - /app/.venv
+    environment:
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    command: pytest tests/ -v --cov=src --cov-report=html

@@ -1,37 +1,5 @@
-# ==== DADOS TEMPORÁRIOS ====
-_temp/
-*.tmp
-temp/
-cache/
+# Alfredo AI - Git Ignore
 
-# ==== DADOS DE ENTRADA ====
-# Vídeos e áudios de entrada (muito grandes para Git)
-data/input/local/*.mp4
-data/input/local/*.avi
-data/input/local/*.mov
-data/input/local/*.mkv
-data/input/local/*.webm
-data/input/local/*.mp3
-data/input/local/*.wav
-data/input/local/*.m4a
-data/input/local/*.flac
-
-# ==== IGNORAR TODA A PASTA DATA (exceto README) ====
-data/*
-!data/README.md
-
-# ==== CACHE E PROCESSAMENTO ====
-# Cache de áudio extraído
-data/cache/audio/
-data/cache/frames/
-data/cache/
-
-# ==== RESULTADOS (opcional) ====
-# Descomente se não quiser versionar os resumos
-# data/output/summaries/
-# *_resumo.md
-
-# ==== PYTHON ====
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -53,13 +21,18 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
+# PyInstaller
+*.manifest
+*.spec
+
 # Installer logs
-debug.log
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -73,11 +46,41 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+*.py,cover
 .hypothesis/
 .pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
 
 # pyenv
 .python-version
@@ -88,6 +91,38 @@ Pipfile.lock
 # poetry
 poetry.lock
 
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -96,72 +131,183 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# pytype
+# pytype static type analyzer
 .pytype/
 
 # Cython debug symbols
 cython_debug/
 
-# VS Code
-.vscode/
-
-# Local data, logs, outputs, cache, migrations, temp
+# Alfredo AI specific
+data/
+!data/.gitkeep
+logs/
 *.log
 *.tmp
-*.bak
+*.temp
+.cache/
+.temp/
+temp/
+tmp/
+
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
-*.orig
-*.DS_Store
-*.env
-.env*
-*.local
-*.sqlite3
-*.db
-*.pkl
-*.h5
-*.hdf5
-*.csv
-*.tsv
-*.xls
-*.xlsx
-*.parquet
-*.feather
-*.jsonl
-*.yaml
-*.yml
-
-# Alfredo project specific
-# Diretórios de dados e cache
-/data/
-data/
-cache/
-output/
-input/
-migrations/
-
-# Relatórios e arquivos temporários
-RELATORIO_FINAL_LIMPEZA.md
-
-# Ignore legacy/removed folders (garantia extra)
-commands/
-api/
-scripts/
-legacy/
-
-# Ignore test artifacts
-*.test*
-
-# Ignore backup files
 *~
-start_migration_backup.py
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
 
-# Ignore OS files
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-Desktop.ini
 
-# Ignore IA
-.github/
-.clinerules/
+# Docker
+.dockerignore
+docker-compose.override.yml
 
-# End of file
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Security
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+.coverage.*
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Documentation build
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Cache directories
+.cache/
+.cache
+.cache/
+.cache/
+.cache/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Large files
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.3gp
+*.3g2
+*.mpg
+*.mpeg
+*.m2v
+*.m4v
+*.svi
+*.3gp
+*.3g2
+*.mxf
+*.roq
+*.nsv
+*.flv
+*.f4v
+*.f4p
+*.f4a
+*.f4b
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+*.opus
+
+# Model files
+*.pkl
+*.joblib
+*.model
+*.bin
+*.onnx
+*.pb
+*.ckpt
+*.safetensors
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Local configuration
+config.local.py
+settings.local.py
+
+# Bandit security report
+bandit-report.json
+
+# Pre-commit
+.pre-commit-config.yaml.backup
+
+# Coverage
+.coverage
+coverage.xml
+coverage.json
+htmlcov/
+
+# Profiling
+*.prof
+*.lprof
+
+# Benchmarks
+benchmarks/results/
+benchmarks/data/
+
+# Examples (keep structure but ignore content)
+examples/input/
+examples/output/
+examples/temp/
+
+# Keep .gitkeep files
+!.gitkeep

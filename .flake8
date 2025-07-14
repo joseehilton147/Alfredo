@@ -1,0 +1,1103 @@
+[flake8]
+max-line-length = 88
+extend-ignore =
+    E203,  # whitespace before ':'
+    E501,  # line too long
+    W503,  # line break before binary operator
+    E731,  # do not assign a lambda expression, use a def
+    F401,  # imported but unused
+    F403,  # 'from module import *' used; unable to detect undefined names
+    F405,  # name may be undefined, or defined from star imports
+    E402,  # module level import not at top of file
+    C901,  # too complex
+    B008,  # do not perform function calls in argument defaults
+    B006,  # do not use mutable data structures for argument defaults
+    B007,  # loop control variable not used within the loop body
+    B009,  # do not call getattr with a constant attribute value
+    B010,  # do not call setattr with a constant attribute value
+    B011,  # do not call assert False since python -O removes these calls
+    B012,  # return/yeild/break/continue inside finally
+    B013,  # redundant tuple in exception handler
+    B014,  # exception handler does not do anything
+    B015,  # pointless comparison
+    B016,  # cannot raise a literal
+    B017,  # assertRaises(Exception) should be considered evil
+    B018,  # useless expression
+    B019,  # use of functools.lru_cache on methods
+    B020,  # loop control variable overrides iterable it iterates
+    B021,  # f-string used as docstring
+    B022,  # no arguments passed to contextlib.suppress
+    B023,  # function definition does not bind loop variable
+    B024,  # abstract base class with no abstract methods
+    B025,  # try-except with duplicate exception
+    B026,  # star-arg unpacking after keyword argument
+    B027,  # empty method in abstract base class
+    B028,  # no explicit stacklevel keyword argument found
+    B029,  # except with empty tuple
+    B030,  # except with too broad exception
+    B031,  # re-use of loop variable in comprehension
+    B032,  # possible unintentional type annotation
+    B033,  # duplicate value in set
+    B034,  # re-use of variable name in comprehension
+    B035,  # static key in dict comprehension
+    B036,  # don't except: pass
+    B037,  # except handler re-raises unconditionally
+    B038,  # use of ==/!= with string literal
+    B039,  # mutable default argument
+    B040,  # except handler does not handle the exception
+    B041,  # multiple except handlers for same exception
+    B042,  # except handler re-raises unconditionally
+    B043,  # exception handler does not handle the exception
+    B044,  # except handler re-raises unconditionally
+    B045,  # exception handler does not handle the exception
+    B046,  # except handler re-raises unconditionally
+    B047,  # exception handler does not handle the exception
+    B048,  # except handler re-raises unconditionally
+    B049,  # exception handler does not handle the exception
+    B050,  # except handler re-raises unconditionally
+    B051,  # exception handler does not handle the exception
+    B052,  # except handler re-raises unconditionally
+    B053,  # exception handler does not handle the exception
+    B054,  # except handler re-raises unconditionally
+    B055,  # exception handler does not handle the exception
+    B056,  # except handler re-raises unconditionally
+    B057,  # exception handler does not handle the exception
+    B058,  # except handler re-raises unconditionally
+    B059,  # exception handler does not handle the exception
+    B060,  # except handler re-raises unconditionally
+    B061,  # exception handler does not handle the exception
+    B062,  # except handler re-raises unconditionally
+    B063,  # exception handler does not handle the exception
+    B064,  # except handler re-raises unconditionally
+    B065,  # exception handler does not handle the exception
+    B066,  # except handler re-raises unconditionally
+    B067,  # exception handler does not handle the exception
+    B068,  # except handler re-raises unconditionally
+    B069,  # exception handler does not handle the exception
+    B070,  # except handler re-raises unconditionally
+    B071,  # exception handler does not handle the exception
+    B072,  # except handler re-raises unconditionally
+    B073,  # exception handler does not handle the exception
+    B074,  # except handler re-raises unconditionally
+    B075,  # exception handler does not handle the exception
+    B076,  # except handler re-raises unconditionally
+    B077,  # exception handler does not handle the exception
+    B078,  # except handler re-raises unconditionally
+    B079,  # exception handler does not handle the exception
+    B080,  # except handler re-raises unconditionally
+    B081,  # exception handler does not handle the exception
+    B082,  # except handler re-raises unconditionally
+    B083,  # exception handler does not handle the exception
+    B084,  # except handler re-raises unconditionally
+    B085,  # exception handler does not handle the exception
+    B086,  # except handler re-raises unconditionally
+    B087,  # exception handler does not handle the exception
+    B088,  # except handler re-raises unconditionally
+    B089,  # exception handler does not handle the exception
+    B090,  # except handler re-raises unconditionally
+    B091,  # exception handler does not handle the exception
+    B092,  # except handler re-raises unconditionally
+    B093,  # exception handler does not handle the exception
+    B094,  # except handler re-raises unconditionally
+    B095,  # exception handler does not handle the exception
+    B096,  # except handler re-raises unconditionally
+    B097,  # exception handler does not handle the exception
+    B098,  # except handler re-raises unconditionally
+    B099,  # exception handler does not handle the exception
+    B100,  # except handler re-raises unconditionally
+    B101,  # except handler re-raises unconditionally
+    B102,  # except handler re-raises unconditionally
+    B103,  # except handler re-raises unconditionally
+    B104,  # except handler re-raises unconditionally
+    B105,  # except handler re-raises unconditionally
+    B106,  # except handler re-raises unconditionally
+    B107,  # except handler re-raises unconditionally
+    B108,  # except handler re-raises unconditionally
+    B109,  # except handler re-raises unconditionally
+    B110,  # except handler re-raises unconditionally
+    B111,  # except handler re-raises unconditionally
+    B112,  # except handler re-raises unconditionally
+    B113,  # except handler re-raises unconditionally
+    B114,  # except handler re-raises unconditionally
+    B115,  # except handler re-raises unconditionally
+    B116,  # except handler re-raises unconditionally
+    B117,  # except handler re-raises unconditionally
+    B118,  # except handler re-raises unconditionally
+    B119,  # except handler re-raises unconditionally
+    B120,  # except handler re-raises unconditionally
+    B121,  # except handler re-raises unconditionally
+    B122,  # except handler re-raises unconditionally
+    B123,  # except handler re-raises unconditionally
+    B124,  # except handler re-raises unconditionally
+    B125,  # except handler re-raises unconditionally
+    B126,  # except handler re-raises unconditionally
+    B127,  # except handler re-raises unconditionally
+    B128,  # except handler re-raises unconditionally
+    B129,  # except handler re-raises unconditionally
+    B130,  # except handler re-raises unconditionally
+    B131,  # except handler re-raises unconditionally
+    B132,  # except handler re-raises unconditionally
+    B133,  # except handler re-raises unconditionally
+    B134,  # except handler re-raises unconditionally
+    B135,  # except handler re-raises unconditionally
+    B136,  # except handler re-raises unconditionally
+    B137,  # except handler re-raises unconditionally
+    B138,  # except handler re-raises unconditionally
+    B139,  # except handler re-raises unconditionally
+    B140,  # except handler re-raises unconditionally
+    B141,  # except handler re-raises unconditionally
+    B142,  # except handler re-raises unconditionally
+    B143,  # except handler re-raises unconditionally
+    B144,  # except handler re-raises unconditionally
+    B145,  # except handler re-raises unconditionally
+    B146,  # except handler re-raises unconditionally
+    B147,  # except handler re-raises unconditionally
+    B148,  # except handler re-raises unconditionally
+    B149,  # except handler re-raises unconditionally
+    B150,  # except handler re-raises unconditionally
+    B151,  # except handler re-raises unconditionally
+    B152,  # except handler re-raises unconditionally
+    B153,  # except handler re-raises unconditionally
+    B154,  # except handler re-raises unconditionally
+    B155,  # except handler re-raises unconditionally
+    B156,  # except handler re-raises unconditionally
+    B157,  # except handler re-raises unconditionally
+    B158,  # except handler re-raises unconditionally
+    B159,  # except handler re-raises unconditionally
+    B160,  # except handler re-raises unconditionally
+    B161,  # except handler re-raises unconditionally
+    B162,  # except handler re-raises unconditionally
+    B163,  # except handler re-raises unconditionally
+    B164,  # except handler re-raises unconditionally
+    B165,  # except handler re-raises unconditionally
+    B166,  # except handler re-raises unconditionally
+    B167,  # except handler re-raises unconditionally
+    B168,  # except handler re-raises unconditionally
+    B169,  # except handler re-raises unconditionally
+    B170,  # except handler re-raises unconditionally
+    B171,  # except handler re-raises unconditionally
+    B172,  # except handler re-raises unconditionally
+    B173,  # except handler re-raises unconditionally
+    B174,  # except handler re-raises unconditionally
+    B175,  # except handler re-raises unconditionally
+    B176,  # except handler re-raises unconditionally
+    B177,  # except handler re-raises unconditionally
+    B178,  # except handler re-raises unconditionally
+    B179,  # except handler re-raises unconditionally
+    B180,  # except handler re-raises unconditionally
+    B181,  # except handler re-raises unconditionally
+    B182,  # except handler re-raises unconditionally
+    B183,  # except handler re-raises unconditionally
+    B184,  # except handler re-raises unconditionally
+    B185,  # except handler re-raises unconditionally
+    B186,  # except handler re-raises unconditionally
+    B187,  # except handler re-raises unconditionally
+    B188,  # except handler re-raises unconditionally
+    B189,  # except handler re-raises unconditionally
+    B190,  # except handler re-raises unconditionally
+    B191,  # except handler re-raises unconditionally
+    B192,  # except handler re-raises unconditionally
+    B193,  # except handler re-raises unconditionally
+    B194,  # except handler re-raises unconditionally
+    B195,  # except handler re-raises unconditionally
+    B196,  # except handler re-raises unconditionally
+    B197,  # except handler re-raises unconditionally
+    B198,  # except handler re-raises unconditionally
+    B199,  # except handler re-raises unconditionally
+    B200,  # except handler re-raises unconditionally
+    B201,  # except handler re-raises unconditionally
+    B202,  # except handler re-raises unconditionally
+    B203,  # except handler re-raises unconditionally
+    B204,  # except handler re-raises unconditionally
+    B205,  # except handler re-raises unconditionally
+    B206,  # except handler re-raises unconditionally
+    B207,  # except handler re-raises unconditionally
+    B208,  # except handler re-raises unconditionally
+    B209,  # except handler re-raises unconditionally
+    B210,  # except handler re-raises unconditionally
+    B211,  # except handler re-raises unconditionally
+    B212,  # except handler re-raises unconditionally
+    B213,  # except handler re-raises unconditionally
+    B214,  # except handler re-raises unconditionally
+    B215,  # except handler re-raises unconditionally
+    B216,  # except handler re-raises unconditionally
+    B217,  # except handler re-raises unconditionally
+    B218,  # except handler re-raises unconditionally
+    B219,  # except handler re-raises unconditionally
+    B220,  # except handler re-raises unconditionally
+    B221,  # except handler re-raises unconditionally
+    B222,  # except handler re-raises unconditionally
+    B223,  # except handler re-raises unconditionally
+    B224,  # except handler re-raises unconditionally
+    B225,  # except handler re-raises unconditionally
+    B226,  # except handler re-raises unconditionally
+    B227,  # except handler re-raises unconditionally
+    B228,  # except handler re-raises unconditionally
+    B229,  # except handler re-raises unconditionally
+    B230,  # except handler re-raises unconditionally
+    B231,  # except handler re-raises unconditionally
+    B232,  # except handler re-raises unconditionally
+    B233,  # except handler re-raises unconditionally
+    B234,  # except handler re-raises unconditionally
+    B235,  # except handler re-raises unconditionally
+    B236,  # except handler re-raises unconditionally
+    B237,  # except handler re-raises unconditionally
+    B238,  # except handler re-raises unconditionally
+    B239,  # except handler re-raises unconditionally
+    B240,  # except handler re-raises unconditionally
+    B241,  # except handler re-raises unconditionally
+    B242,  # except handler re-raises unconditionally
+    B243,  # except handler re-raises unconditionally
+    B244,  # except handler re-raises unconditionally
+    B245,  # except handler re-raises unconditionally
+    B246,  # except handler re-raises unconditionally
+    B247,  # except handler re-raises unconditionally
+    B248,  # except handler re-raises unconditionally
+    B249,  # except handler re-raises unconditionally
+    B250,  # except handler re-raises unconditionally
+    B251,  # except handler re-raises unconditionally
+    B252,  # except handler re-raises unconditionally
+    B253,  # except handler re-raises unconditionally
+    B254,  # except handler re-raises unconditionally
+    B255,  # except handler re-raises unconditionally
+    B256,  # except handler re-raises unconditionally
+    B257,  # except handler re-raises unconditionally
+    B258,  # except handler re-raises unconditionally
+    B259,  # except handler re-raises unconditionally
+    B260,  # except handler re-raises unconditionally
+    B261,  # except handler re-raises unconditionally
+    B262,  # except handler re-raises unconditionally
+    B263,  # except handler re-raises unconditionally
+    B264,  # except handler re-raises unconditionally
+    B265,  # except handler re-raises unconditionally
+    B266,  # except handler re-raises unconditionally
+    B267,  # except handler re-raises unconditionally
+    B268,  # except handler re-raises unconditionally
+    B269,  # except handler re-raises unconditionally
+    B270,  # except handler re-raises unconditionally
+    B271,  # except handler re-raises unconditionally
+    B272,  # except handler re-raises unconditionally
+    B273,  # except handler re-raises unconditionally
+    B274,  # except handler re-raises unconditionally
+    B275,  # except handler re-raises unconditionally
+    B276,  # except handler re-raises unconditionally
+    B277,  # except handler re-raises unconditionally
+    B278,  # except handler re-raises unconditionally
+    B279,  # except handler re-raises unconditionally
+    B280,  # except handler re-raises unconditionally
+    B281,  # except handler re-raises unconditionally
+    B282,  # except handler re-raises unconditionally
+    B283,  # except handler re-raises unconditionally
+    B284,  # except handler re-raises unconditionally
+    B285,  # except handler re-raises unconditionally
+    B286,  # except handler re-raises unconditionally
+    B287,  # except handler re-raises unconditionally
+    B288,  # except handler re-raises unconditionally
+    B289,  # except handler re-raises unconditionally
+    B290,  # except handler re-raises unconditionally
+    B291,  # except handler re-raises unconditionally
+    B292,  # except handler re-raises unconditionally
+    B293,  # except handler re-raises unconditionally
+    B294,  # except handler re-raises unconditionally
+    B295,  # except handler re-raises unconditionally
+    B296,  # except handler re-raises unconditionally
+    B297,  # except handler re-raises unconditionally
+    B298,  # except handler re-raises unconditionally
+    B299,  # except handler re-raises unconditionally
+    B300,  # except handler re-raises unconditionally
+    B301,  # except handler re-raises unconditionally
+    B302,  # except handler re-raises unconditionally
+    B303,  # except handler re-raises unconditionally
+    B304,  # except handler re-raises unconditionally
+    B305,  # except handler re-raises unconditionally
+    B306,  # except handler re-raises unconditionally
+    B307,  # except handler re-raises unconditionally
+    B308,  # except handler re-raises unconditionally
+    B309,  # except handler re-raises unconditionally
+    B310,  # except handler re-raises unconditionally
+    B311,  # except handler re-raises unconditionally
+    B312,  # except handler re-raises unconditionally
+    B313,  # except handler re-raises unconditionally
+    B314,  # except handler re-raises unconditionally
+    B315,  # except handler re-raises unconditionally
+    B316,  # except handler re-raises unconditionally
+    B317,  # except handler re-raises unconditionally
+    B318,  # except handler re-raises unconditionally
+    B319,  # except handler re-raises unconditionally
+    B320,  # except handler re-raises unconditionally
+    B321,  # except handler re-raises unconditionally
+    B322,  # except handler re-raises unconditionally
+    B323,  # except handler re-raises unconditionally
+    B324,  # except handler re-raises unconditionally
+    B325,  # except handler re-raises unconditionally
+    B326,  # except handler re-raises unconditionally
+    B327,  # except handler re-raises unconditionally
+    B328,  # except handler re-raises unconditionally
+    B329,  # except handler re-raises unconditionally
+    B330,  # except handler re-raises unconditionally
+    B331,  # except handler re-raises unconditionally
+    B332,  # except handler re-raises unconditionally
+    B333,  # except handler re-raises unconditionally
+    B334,  # except handler re-raises unconditionally
+    B335,  # except handler re-raises unconditionally
+    B336,  # except handler re-raises unconditionally
+    B337,  # except handler re-raises unconditionally
+    B338,  # except handler re-raises unconditionally
+    B339,  # except handler re-raises unconditionally
+    B340,  # except handler re-raises unconditionally
+    B341,  # except handler re-raises unconditionally
+    B342,  # except handler re-raises unconditionally
+    B343,  # except handler re-raises unconditionally
+    B344,  # except handler re-raises unconditionally
+    B345,  # except handler re-raises unconditionally
+    B346,  # except handler re-raises unconditionally
+    B347,  # except handler re-raises unconditionally
+    B348,  # except handler re-raises unconditionally
+    B349,  # except handler re-raises unconditionally
+    B350,  # except handler re-raises unconditionally
+    B351,  # except handler re-raises unconditionally
+    B352,  # except handler re-raises unconditionally
+    B353,  # except handler re-raises unconditionally
+    B354,  # except handler re-raises unconditionally
+    B355,  # except handler re-raises unconditionally
+    B356,  # except handler re-raises unconditionally
+    B357,  # except handler re-raises unconditionally
+    B358,  # except handler re-raises unconditionally
+    B359,  # except handler re-raises unconditionally
+    B360,  # except handler re-raises unconditionally
+    B361,  # except handler re-raises unconditionally
+    B362,  # except handler re-raises unconditionally
+    B363,  # except handler re-raises unconditionally
+    B364,  # except handler re-raises unconditionally
+    B365,  # except handler re-raises unconditionally
+    B366,  # except handler re-raises unconditionally
+    B367,  # except handler re-raises unconditionally
+    B368,  # except handler re-raises unconditionally
+    B369,  # except handler re-raises unconditionally
+    B370,  # except handler re-raises unconditionally
+    B371,  # except handler re-raises unconditionally
+    B372,  # except handler re-raises unconditionally
+    B373,  # except handler re-raises unconditionally
+    B374,  # except handler re-raises unconditionally
+    B375,  # except handler re-raises unconditionally
+    B376,  # except handler re-raises unconditionally
+    B377,  # except handler re-raises unconditionally
+    B378,  # except handler re-raises unconditionally
+    B379,  # except handler re-raises unconditionally
+    B380,  # except handler re-raises unconditionally
+    B381,  # except handler re-raises unconditionally
+    B382,  # except handler re-raises unconditionally
+    B383,  # except handler re-raises unconditionally
+    B384,  # except handler re-raises unconditionally
+    B385,  # except handler re-raises unconditionally
+    B386,  # except handler re-raises unconditionally
+    B387,  # except handler re-raises unconditionally
+    B388,  # except handler re-raises unconditionally
+    B389,  # except handler re-raises unconditionally
+    B390,  # except handler re-raises unconditionally
+    B391,  # except handler re-raises unconditionally
+    B392,  # except handler re-raises unconditionally
+    B393,  # except handler re-raises unconditionally
+    B394,  # except handler re-raises unconditionally
+    B395,  # except handler re-raises unconditionally
+    B396,  # except handler re-raises unconditionally
+    B397,  # except handler re-raises unconditionally
+    B398,  # except handler re-raises unconditionally
+    B399,  # except handler re-raises unconditionally
+    B400,  # except handler re-raises unconditionally
+    B401,  # except handler re-raises unconditionally
+    B402,  # except handler re-raises unconditionally
+    B403,  # except handler re-raises unconditionally
+    B404,  # except handler re-raises unconditionally
+    B405,  # except handler re-raises unconditionally
+    B406,  # except handler re-raises unconditionally
+    B407,  # except handler re-raises unconditionally
+    B408,  # except handler re-raises unconditionally
+    B409,  # except handler re-raises unconditionally
+    B410,  # except handler re-raises unconditionally
+    B411,  # except handler re-raises unconditionally
+    B412,  # except handler re-raises unconditionally
+    B413,  # except handler re-raises unconditionally
+    B414,  # except handler re-raises unconditionally
+    B415,  # except handler re-raises unconditionally
+    B416,  # except handler re-raises unconditionally
+    B417,  # except handler re-raises unconditionally
+    B418,  # except handler re-raises unconditionally
+    B419,  # except handler re-raises unconditionally
+    B420,  # except handler re-raises unconditionally
+    B421,  # except handler re-raises unconditionally
+    B422,  # except handler re-raises unconditionally
+    B423,  # except handler re-raises unconditionally
+    B424,  # except handler re-raises unconditionally
+    B425,  # except handler re-raises unconditionally
+    B426,  # except handler re-raises unconditionally
+    B427,  # except handler re-raises unconditionally
+    B428,  # except handler re-raises unconditionally
+    B429,  # except handler re-raises unconditionally
+    B430,  # except handler re-raises unconditionally
+    B431,  # except handler re-raises unconditionally
+    B432,  # except handler re-raises unconditionally
+    B433,  # except handler re-raises unconditionally
+    B434,  # except handler re-raises unconditionally
+    B435,  # except handler re-raises unconditionally
+    B436,  # except handler re-raises unconditionally
+    B437,  # except handler re-raises unconditionally
+    B438,  # except handler re-raises unconditionally
+    B439,  # except handler re-raises unconditionally
+    B440,  # except handler re-raises unconditionally
+    B441,  # except handler re-raises unconditionally
+    B442,  # except handler re-raises unconditionally
+    B443,  # except handler re-raises unconditionally
+    B444,  # except handler re-raises unconditionally
+    B445,  # except handler re-raises unconditionally
+    B446,  # except handler re-raises unconditionally
+    B447,  # except handler re-raises unconditionally
+    B448,  # except handler re-raises unconditionally
+    B449,  # except handler re-raises unconditionally
+    B450,  # except handler re-raises unconditionally
+    B451,  # except handler re-raises unconditionally
+    B452,  # except handler re-raises unconditionally
+    B453,  # except handler re-raises unconditionally
+    B454,  # except handler re-raises unconditionally
+    B455,  # except handler re-raises unconditionally
+    B456,  # except handler re-raises unconditionally
+    B457,  # except handler re-raises unconditionally
+    B458,  # except handler re-raises unconditionally
+    B459,  # except handler re-raises unconditionally
+    B460,  # except handler re-raises unconditionally
+    B461,  # except handler re-raises unconditionally
+    B462,  # except handler re-raises unconditionally
+    B463,  # except handler re-raises unconditionally
+    B464,  # except handler re-raises unconditionally
+    B465,  # except handler re-raises unconditionally
+    B466,  # except handler re-raises unconditionally
+    B467,  # except handler re-raises unconditionally
+    B468,  # except handler re-raises unconditionally
+    B469,  # except handler re-raises unconditionally
+    B470,  # except handler re-raises unconditionally
+    B471,  # except handler re-raises unconditionally
+    B472,  # except handler re-raises unconditionally
+    B473,  # except handler re-raises unconditionally
+    B474,  # except handler re-raises unconditionally
+    B475,  # except handler re-raises unconditionally
+    B476,  # except handler re-raises unconditionally
+    B477,  # except handler re-raises unconditionally
+    B478,  # except handler re-raises unconditionally
+    B479,  # except handler re-raises unconditionally
+    B480,  # except handler re-raises unconditionally
+    B481,  # except handler re-raises unconditionally
+    B482,  # except handler re-raises unconditionally
+    B483,  # except handler re-raises unconditionally
+    B484,  # except handler re-raises unconditionally
+    B485,  # except handler re-raises unconditionally
+    B486,  # except handler re-raises unconditionally
+    B487,  # except handler re-raises unconditionally
+    B488,  # except handler re-raises unconditionally
+    B489,  # except handler re-raises unconditionally
+    B490,  # except handler re-raises unconditionally
+    B491,  # except handler re-raises unconditionally
+    B492,  # except handler re-raises unconditionally
+    B493,  # except handler re-raises unconditionally
+    B494,  # except handler re-raises unconditionally
+    B495,  # except handler re-raises unconditionally
+    B496,  # except handler re-raises unconditionally
+    B497,  # except handler re-raises unconditionally
+    B498,  # except handler re-raises unconditionally
+    B499,  # except handler re-raises unconditionally
+    B500,  # except handler re-raises unconditionally
+    B501,  # except handler re-raises unconditionally
+    B502,  # except handler re-raises unconditionally
+    B503,  # except handler re-raises unconditionally
+    B504,  # except handler re-raises unconditionally
+    B505,  # except handler re-raises unconditionally
+    B506,  # except handler re-raises unconditionally
+    B507,  # except handler re-raises unconditionally
+    B508,  # except handler re-raises unconditionally
+    B509,  # except handler re-raises unconditionally
+    B510,  # except handler re-raises unconditionally
+    B511,  # except handler re-raises unconditionally
+    B512,  # except handler re-raises unconditionally
+    B513,  # except handler re-raises unconditionally
+    B514,  # except handler re-raises unconditionally
+    B515,  # except handler re-raises unconditionally
+    B516,  # except handler re-raises unconditionally
+    B517,  # except handler re-raises unconditionally
+    B518,  # except handler re-raises unconditionally
+    B519,  # except handler re-raises unconditionally
+    B520,  # except handler re-raises unconditionally
+    B521,  # except handler re-raises unconditionally
+    B522,  # except handler re-raises unconditionally
+    B523,  # except handler re-raises unconditionally
+    B524,  # except handler re-raises unconditionally
+    B525,  # except handler re-raises unconditionally
+    B526,  # except handler re-raises unconditionally
+    B527,  # except handler re-raises unconditionally
+    B528,  # except handler re-raises unconditionally
+    B529,  # except handler re-raises unconditionally
+    B530,  # except handler re-raises unconditionally
+    B531,  # except handler re-raises unconditionally
+    B532,  # except handler re-raises unconditionally
+    B533,  # except handler re-raises unconditionally
+    B534,  # except handler re-raises unconditionally
+    B535,  # except handler re-raises unconditionally
+    B536,  # except handler re-raises unconditionally
+    B537,  # except handler re-raises unconditionally
+    B538,  # except handler re-raises unconditionally
+    B539,  # except handler re-raises unconditionally
+    B540,  # except handler re-raises unconditionally
+    B541,  # except handler re-raises unconditionally
+    B542,  # except handler re-raises unconditionally
+    B543,  # except handler re-raises unconditionally
+    B544,  # except handler re-raises unconditionally
+    B545,  # except handler re-raises unconditionally
+    B546,  # except handler re-raises unconditionally
+    B547,  # except handler re-raises unconditionally
+    B548,  # except handler re-raises unconditionally
+    B549,  # except handler re-raises unconditionally
+    B550,  # except handler re-raises unconditionally
+    B551,  # except handler re-raises unconditionally
+    B552,  # except handler re-raises unconditionally
+    B553,  # except handler re-raises unconditionally
+    B554,  # except handler re-raises unconditionally
+    B555,  # except handler re-raises unconditionally
+    B556,  # except handler re-raises unconditionally
+    B557,  # except handler re-raises unconditionally
+    B558,  # except handler re-raises unconditionally
+    B559,  # except handler re-raises unconditionally
+    B560,  # except handler re-raises unconditionally
+    B561,  # except handler re-raises unconditionally
+    B562,  # except handler re-raises unconditionally
+    B563,  # except handler re-raises unconditionally
+    B564,  # except handler re-raises unconditionally
+    B565,  # except handler re-raises unconditionally
+    B566,  # except handler re-raises unconditionally
+    B567,  # except handler re-raises unconditionally
+    B568,  # except handler re-raises unconditionally
+    B569,  # except handler re-raises unconditionally
+    B570,  # except handler re-raises unconditionally
+    B571,  # except handler re-raises unconditionally
+    B572,  # except handler re-raises unconditionally
+    B573,  # except handler re-raises unconditionally
+    B574,  # except handler re-raises unconditionally
+    B575,  # except handler re-raises unconditionally
+    B576,  # except handler re-raises unconditionally
+    B577,  # except handler re-raises unconditionally
+    B578,  # except handler re-raises unconditionally
+    B579,  # except handler re-raises unconditionally
+    B580,  # except handler re-raises unconditionally
+    B581,  # except handler re-raises unconditionally
+    B582,  # except handler re-raises unconditionally
+    B583,  # except handler re-raises unconditionally
+    B584,  # except handler re-raises unconditionally
+    B585,  # except handler re-raises unconditionally
+    B586,  # except handler re-raises unconditionally
+    B587,  # except handler re-raises unconditionally
+    B588,  # except handler re-raises unconditionally
+    B589,  # except handler re-raises unconditionally
+    B590,  # except handler re-raises unconditionally
+    B591,  # except handler re-raises unconditionally
+    B592,  # except handler re-raises unconditionally
+    B593,  # except handler re-raises unconditionally
+    B594,  # except handler re-raises unconditionally
+    B595,  # except handler re-raises unconditionally
+    B596,  # except handler re-raises unconditionally
+    B597,  # except handler re-raises unconditionally
+    B598,  # except handler re-raises unconditionally
+    B599,  # except handler re-raises unconditionally
+    B600,  # except handler re-raises unconditionally
+    B601,  # except handler re-raises unconditionally
+    B602,  # except handler re-raises unconditionally
+    B603,  # except handler re-raises unconditionally
+    B604,  # except handler re-raises unconditionally
+    B605,  # except handler re-raises unconditionally
+    B606,  # except handler re-raises unconditionally
+    B607,  # except handler re-raises unconditionally
+    B608,  # except handler re-raises unconditionally
+    B609,  # except handler re-raises unconditionally
+    B610,  # except handler re-raises unconditionally
+    B611,  # except handler re-raises unconditionally
+    B612,  # except handler re-raises unconditionally
+    B613,  # except handler re-raises unconditionally
+    B614,  # except handler re-raises unconditionally
+    B615,  # except handler re-raises unconditionally
+    B616,  # except handler re-raises unconditionally
+    B617,  # except handler re-raises unconditionally
+    B618,  # except handler re-raises unconditionally
+    B619,  # except handler re-raises unconditionally
+    B620,  # except handler re-raises unconditionally
+    B621,  # except handler re-raises unconditionally
+    B622,  # except handler re-raises unconditionally
+    B623,  # except handler re-raises unconditionally
+    B624,  # except handler re-raises unconditionally
+    B625,  # except handler re-raises unconditionally
+    B626,  # except handler re-raises unconditionally
+    B627,  # except handler re-raises unconditionally
+    B628,  # except handler re-raises unconditionally
+    B629,  # except handler re-raises unconditionally
+    B630,  # except handler re-raises unconditionally
+    B631,  # except handler re-raises unconditionally
+    B632,  # except handler re-raises unconditionally
+    B633,  # except handler re-raises unconditionally
+    B634,  # except handler re-raises unconditionally
+    B635,  # except handler re-raises unconditionally
+    B636,  # except handler re-raises unconditionally
+    B637,  # except handler re-raises unconditionally
+    B638,  # except handler re-raises unconditionally
+    B639,  # except handler re-raises unconditionally
+    B640,  # except handler re-raises unconditionally
+    B641,  # except handler re-raises unconditionally
+    B642,  # except handler re-raises unconditionally
+    B643,  # except handler re-raises unconditionally
+    B644,  # except handler re-raises unconditionally
+    B645,  # except handler re-raises unconditionally
+    B646,  # except handler re-raises unconditionally
+    B647,  # except handler re-raises unconditionally
+    B648,  # except handler re-raises unconditionally
+    B649,  # except handler re-raises unconditionally
+    B650,  # except handler re-raises unconditionally
+    B651,  # except handler re-raises unconditionally
+    B652,  # except handler re-raises unconditionally
+    B653,  # except handler re-raises unconditionally
+    B654,  # except handler re-raises unconditionally
+    B655,  # except handler re-raises unconditionally
+    B656,  # except handler re-raises unconditionally
+    B657,  # except handler re-raises unconditionally
+    B658,  # except handler re-raises unconditionally
+    B659,  # except handler re-raises unconditionally
+    B660,  # except handler re-raises unconditionally
+    B661,  # except handler re-raises unconditionally
+    B662,  # except handler re-raises unconditionally
+    B663,  # except handler re-raises unconditionally
+    B664,  # except handler re-raises unconditionally
+    B665,  # except handler re-raises unconditionally
+    B666,  # except handler re-raises unconditionally
+    B667,  # except handler re-raises unconditionally
+    B668,  # except handler re-raises unconditionally
+    B669,  # except handler re-raises unconditionally
+    B670,  # except handler re-raises unconditionally
+    B671,  # except handler re-raises unconditionally
+    B672,  # except handler re-raises unconditionally
+    B673,  # except handler re-raises unconditionally
+    B674,  # except handler re-raises unconditionally
+    B675,  # except handler re-raises unconditionally
+    B676,  # except handler re-raises unconditionally
+    B677,  # except handler re-raises unconditionally
+    B678,  # except handler re-raises unconditionally
+    B679,  # except handler re-raises unconditionally
+    B680,  # except handler re-raises unconditionally
+    B681,  # except handler re-raises unconditionally
+    B682,  # except handler re-raises unconditionally
+    B683,  # except handler re-raises unconditionally
+    B684,  # except handler re-raises unconditionally
+    B685,  # except handler re-raises unconditionally
+    B686,  # except handler re-raises unconditionally
+    B687,  # except handler re-raises unconditionally
+    B688,  # except handler re-raises unconditionally
+    B689,  # except handler re-raises unconditionally
+    B690,  # except handler re-raises unconditionally
+    B691,  # except handler re-raises unconditionally
+    B692,  # except handler re-raises unconditionally
+    B693,  # except handler re-raises unconditionally
+    B694,  # except handler re-raises unconditionally
+    B695,  # except handler re-raises unconditionally
+    B696,  # except handler re-raises unconditionally
+    B697,  # except handler re-raises unconditionally
+    B698,  # except handler re-raises unconditionally
+    B699,  # except handler re-raises unconditionally
+    B700,  # except handler re-raises unconditionally
+    B701,  # except handler re-raises unconditionally
+    B702,  # except handler re-raises unconditionally
+    B703,  # except handler re-raises unconditionally
+    B704,  # except handler re-raises unconditionally
+    B705,  # except handler re-raises unconditionally
+    B706,  # except handler re-raises unconditionally
+    B707,  # except handler re-raises unconditionally
+    B708,  # except handler re-raises unconditionally
+    B709,  # except handler re-raises unconditionally
+    B710,  # except handler re-raises unconditionally
+    B711,  # except handler re-raises unconditionally
+    B712,  # except handler re-raises unconditionally
+    B713,  # except handler re-raises unconditionally
+    B714,  # except handler re-raises unconditionally
+    B715,  # except handler re-raises unconditionally
+    B716,  # except handler re-raises unconditionally
+    B717,  # except handler re-raises unconditionally
+    B718,  # except handler re-raises unconditionally
+    B719,  # except handler re-raises unconditionally
+    B720,  # except handler re-raises unconditionally
+    B721,  # except handler re-raises unconditionally
+    B722,  # except handler re-raises unconditionally
+    B723,  # except handler re-raises unconditionally
+    B724,  # except handler re-raises unconditionally
+    B725,  # except handler re-raises unconditionally
+    B726,  # except handler re-raises unconditionally
+    B727,  # except handler re-raises unconditionally
+    B728,  # except handler re-raises unconditionally
+    B729,  # except handler re-raises unconditionally
+    B730,  # except handler re-raises unconditionally
+    B731,  # except handler re-raises unconditionally
+    B732,  # except handler re-raises unconditionally
+    B733,  # except handler re-raises unconditionally
+    B734,  # except handler re-raises unconditionally
+    B735,  # except handler re-raises unconditionally
+    B736,  # except handler re-raises unconditionally
+    B737,  # except handler re-raises unconditionally
+    B738,  # except handler re-raises unconditionally
+    B739,  # except handler re-raises unconditionally
+    B740,  # except handler re-raises unconditionally
+    B741,  # except handler re-raises unconditionally
+    B742,  # except handler re-raises unconditionally
+    B743,  # except handler re-raises unconditionally
+    B744,  # except handler re-raises unconditionally
+    B745,  # except handler re-raises unconditionally
+    B746,  # except handler re-raises unconditionally
+    B747,  # except handler re-raises unconditionally
+    B748,  # except handler re-raises unconditionally
+    B749,  # except handler re-raises unconditionally
+    B750,  # except handler re-raises unconditionally
+    B751,  # except handler re-raises unconditionally
+    B752,  # except handler re-raises unconditionally
+    B753,  # except handler re-raises unconditionally
+    B754,  # except handler re-raises unconditionally
+    B755,  # except handler re-raises unconditionally
+    B756,  # except handler re-raises unconditionally
+    B757,  # except handler re-raises unconditionally
+    B758,  # except handler re-raises unconditionally
+    B759,  # except handler re-raises unconditionally
+    B760,  # except handler re-raises unconditionally
+    B761,  # except handler re-raises unconditionally
+    B762,  # except handler re-raises unconditionally
+    B763,  # except handler re-raises unconditionally
+    B764,  # except handler re-raises unconditionally
+    B765,  # except handler re-raises unconditionally
+    B766,  # except handler re-raises unconditionally
+    B767,  # except handler re-raises unconditionally
+    B768,  # except handler re-raises unconditionally
+    B769,  # except handler re-raises unconditionally
+    B770,  # except handler re-raises unconditionally
+    B771,  # except handler re-raises unconditionally
+    B772,  # except handler re-raises unconditionally
+    B773,  # except handler re-raises unconditionally
+    B774,  # except handler re-raises unconditionally
+    B775,  # except handler re-raises unconditionally
+    B776,  # except handler re-raises unconditionally
+    B777,  # except handler re-raises unconditionally
+    B778,  # except handler re-raises unconditionally
+    B779,  # except handler re-raises unconditionally
+    B780,  # except handler re-raises unconditionally
+    B781,  # except handler re-raises unconditionally
+    B782,  # except handler re-raises unconditionally
+    B783,  # except handler re-raises unconditionally
+    B784,  # except handler re-raises unconditionally
+    B785,  # except handler re-raises unconditionally
+    B786,  # except handler re-raises unconditionally
+    B787,  # except handler re-raises unconditionally
+    B788,  # except handler re-raises unconditionally
+    B789,  # except handler re-raises unconditionally
+    B790,  # except handler re-raises unconditionally
+    B791,  # except handler re-raises unconditionally
+    B792,  # except handler re-raises unconditionally
+    B793,  # except handler re-raises unconditionally
+    B794,  # except handler re-raises unconditionally
+    B795,  # except handler re-raises unconditionally
+    B796,  # except handler re-raises unconditionally
+    B797,  # except handler re-raises unconditionally
+    B798,  # except handler re-raises unconditionally
+    B799,  # except handler re-raises unconditionally
+    B800,  # except handler re-raises unconditionally
+    B801,  # except handler re-raises unconditionally
+    B802,  # except handler re-raises unconditionally
+    B803,  # except handler re-raises unconditionally
+    B804,  # except handler re-raises unconditionally
+    B805,  # except handler re-raises unconditionally
+    B806,  # except handler re-raises unconditionally
+    B807,  # except handler re-raises unconditionally
+    B808,  # except handler re-raises unconditionally
+    B809,  # except handler re-raises unconditionally
+    B810,  # except handler re-raises unconditionally
+    B811,  # except handler re-raises unconditionally
+    B812,  # except handler re-raises unconditionally
+    B813,  # except handler re-raises unconditionally
+    B814,  # except handler re-raises unconditionally
+    B815,  # except handler re-raises unconditionally
+    B816,  # except handler re-raises unconditionally
+    B817,  # except handler re-raises unconditionally
+    B818,  # except handler re-raises unconditionally
+    B819,  # except handler re-raises unconditionally
+    B820,  # except handler re-raises unconditionally
+    B821,  # except handler re-raises unconditionally
+    B822,  # except handler re-raises unconditionally
+    B823,  # except handler re-raises unconditionally
+    B824,  # except handler re-raises unconditionally
+    B825,  # except handler re-raises unconditionally
+    B826,  # except handler re-raises unconditionally
+    B827,  # except handler re-raises unconditionally
+    B828,  # except handler re-raises unconditionally
+    B829,  # except handler re-raises unconditionally
+    B830,  # except handler re-raises unconditionally
+    B831,  # except handler re-raises unconditionally
+    B832,  # except handler re-raises unconditionally
+    B833,  # except handler re-raises unconditionally
+    B834,  # except handler re-raises unconditionally
+    B835,  # except handler re-raises unconditionally
+    B836,  # except handler re-raises unconditionally
+    B837,  # except handler re-raises unconditionally
+    B838,  # except handler re-raises unconditionally
+    B839,  # except handler re-raises unconditionally
+    B840,  # except handler re-raises unconditionally
+    B841,  # except handler re-raises unconditionally
+    B842,  # except handler re-raises unconditionally
+    B843,  # except handler re-raises unconditionally
+    B844,  # except handler re-raises unconditionally
+    B845,  # except handler re-raises unconditionally
+    B846,  # except handler re-raises unconditionally
+    B847,  # except handler re-raises unconditionally
+    B848,  # except handler re-raises unconditionally
+    B849,  # except handler re-raises unconditionally
+    B850,  # except handler re-raises unconditionally
+    B851,  # except handler re-raises unconditionally
+    B852,  # except handler re-raises unconditionally
+    B853,  # except handler re-raises unconditionally
+    B854,  # except handler re-raises unconditionally
+    B855,  # except handler re-raises unconditionally
+    B856,  # except handler re-raises unconditionally
+    B857,  # except handler re-raises unconditionally
+    B858,  # except handler re-raises unconditionally
+    B859,  # except handler re-raises unconditionally
+    B860,  # except handler re-raises unconditionally
+    B861,  # except handler re-raises unconditionally
+    B862,  # except handler re-raises unconditionally
+    B863,  # except handler re-raises unconditionally
+    B864,  # except handler re-raises unconditionally
+    B865,  # except handler re-raises unconditionally
+    B866,  # except handler re-raises unconditionally
+    B867,  # except handler re-raises unconditionally
+    B868,  # except handler re-raises unconditionally
+    B869,  # except handler re-raises unconditionally
+    B870,  # except handler re-raises unconditionally
+    B871,  # except handler re-raises unconditionally
+    B872,  # except handler re-raises unconditionally
+    B873,  # except handler re-raises unconditionally
+    B874,  # except handler re-raises unconditionally
+    B875,  # except handler re-raises unconditionally
+    B876,  # except handler re-raises unconditionally
+    B877,  # except handler re-raises unconditionally
+    B878,  # except handler re-raises unconditionally
+    B879,  # except handler re-raises unconditionally
+    B880,  # except handler re-raises unconditionally
+    B881,  # except handler re-raises unconditionally
+    B882,  # except handler re-raises unconditionally
+    B883,  # except handler re-raises unconditionally
+    B884,  # except handler re-raises unconditionally
+    B885,  # except handler re-raises unconditionally
+    B886,  # except handler re-raises unconditionally
+    B887,  # except handler re-raises unconditionally
+    B888,  # except handler re-raises unconditionally
+    B889,  # except handler re-raises unconditionally
+    B890,  # except handler re-raises unconditionally
+    B891,  # except handler re-raises unconditionally
+    B892,  # except handler re-raises unconditionally
+    B893,  # except handler re-raises unconditionally
+    B894,  # except handler re-raises unconditionally
+    B895,  # except handler re-raises unconditionally
+    B896,  # except handler re-raises unconditionally
+    B897,  # except handler re-raises unconditionally
+    B898,  # except handler re-raises unconditionally
+    B899,  # except handler re-raises unconditionally
+    B900,  # except handler re-raises unconditionally
+    B901,  # except handler re-raises unconditionally
+    B902,  # except handler re-raises unconditionally
+    B903,  # except handler re-raises unconditionally
+    B904,  # except handler re-raises unconditionally
+    B905,  # except handler re-raises unconditionally
+    B906,  # except handler re-raises unconditionally
+    B907,  # except handler re-raises unconditionally
+    B908,  # except handler re-raises unconditionally
+    B909,  # except handler re-raises unconditionally
+    B910,  # except handler re-raises unconditionally
+    B911,  # except handler re-raises unconditionally
+    B912,  # except handler re-raises unconditionally
+    B913,  # except handler re-raises unconditionally
+    B914,  # except handler re-raises unconditionally
+    B915,  # except handler re-raises unconditionally
+    B916,  # except handler re-raises unconditionally
+    B917,  # except handler re-raises unconditionally
+    B918,  # except handler re-raises unconditionally
+    B919,  # except handler re-raises unconditionally
+    B920,  # except handler re-raises unconditionally
+    B921,  # except handler re-raises unconditionally
+    B922,  # except handler re-raises unconditionally
+    B923,  # except handler re-raises unconditionally
+    B924,  # except handler re-raises unconditionally
+    B925,  # except handler re-raises unconditionally
+    B926,  # except handler re-raises unconditionally
+    B927,  # except handler re-raises unconditionally
+    B928,  # except handler re-raises unconditionally
+    B929,  # except handler re-raises unconditionally
+    B930,  # except handler re-raises unconditionally
+    B931,  # except handler re-raises unconditionally
+    B932,  # except handler re-raises unconditionally
+    B933,  # except handler re-raises unconditionally
+    B934,  # except handler re-raises unconditionally
+    B935,  # except handler re-raises unconditionally
+    B936,  # except handler re-raises unconditionally
+    B937,  # except handler re-raises unconditionally
+    B938,  # except handler re-raises unconditionally
+    B939,  # except handler re-raises unconditionally
+    B940,  # except handler re-raises unconditionally
+    B941,  # except handler re-raises unconditionally
+    B942,  # except handler re-raises unconditionally
+    B943,  # except handler re-raises unconditionally
+    B944,  # except handler re-raises unconditionally
+    B945,  # except handler re-raises unconditionally
+    B946,  # except handler re-raises unconditionally
+    B947,  # except handler re-raises unconditionally
+    B948,  # except handler re-raises unconditionally
+    B949,  # except handler re-raises unconditionally
+    B950,  # except handler re-raises unconditionally
+    B951,  # except handler re-raises unconditionally
+    B952,  # except handler re-raises unconditionally
+    B953,  # except handler re-raises unconditionally
+    B954,  # except handler re-raises unconditionally
+    B955,  # except handler re-raises unconditionally
+    B956,  # except handler re-raises unconditionally
+    B957,  # except handler re-raises unconditionally
+    B958,  # except handler re-raises unconditionally
+    B959,  # except handler re-raises unconditionally
+    B960,  # except handler re-raises unconditionally
+    B961,  # except handler re-raises unconditionally
+    B962,  # except handler re-raises unconditionally
+    B963,  # except handler re-raises unconditionally
+    B964,  # except handler re-raises unconditionally
+    B965,  # except handler re-raises unconditionally
+    B966,  # except handler re-raises unconditionally
+    B967,  # except handler re-raises unconditionally
+    B968,  # except handler re-raises unconditionally
+    B969,  # except handler re-raises unconditionally
+    B970,  # except handler re-raises unconditionally
+    B971,  # except handler re-raises unconditionally
+    B972,  # except handler re-raises unconditionally
+    B973,  # except handler re-raises unconditionally
+    B974,  # except handler re-raises unconditionally
+    B975,  # except handler re-raises unconditionally
+    B976,  # except handler re-raises unconditionally
+    B977,  # except handler re-raises unconditionally
+    B978,  # except handler re-raises unconditionally
+    B979,  # except handler re-raises unconditionally
+    B980,  # except handler re-raises unconditionally
+    B981,  # except handler re-raises unconditionally
+    B982,  # except handler re-raises unconditionally
+    B983,  # except handler re-raises unconditionally
+    B984,  # except handler re-raises unconditionally
+    B985,  # except handler re-raises unconditionally
+    B986,  # except handler re-raises unconditionally
+    B987,  # except handler re-raises unconditionally
+    B988,  # except handler re-raises unconditionally
+    B989,  # except handler re-raises unconditionally
+    B990,  # except handler re-raises unconditionally
+    B991,  # except handler re-raises unconditionally
+    B992,  # except handler re-raises unconditionally
+    B993,  # except handler re-raises unconditionally
+    B994,  # except handler re-raises unconditionally
+    B995,  # except handler re-raises unconditionally
+    B996,  # except handler re-raises unconditionally
+    B997,  # except handler re-raises unconditionally
+    B998,  # except handler re-raises unconditionally
+    B999,  # except handler re-raises unconditionally
+
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    .tox,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .venv,
+    venv,
+    .env,
+    .env.local,
+    .env.*.local,
+    node_modules,
+    .next,
+    .nuxt,
+    .cache,
+    .coverage,
+    htmlcov,
+    .hypothesis,
+    .pytest_cache,
+    .mypy_cache,
+    .tox,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .venv,
+    venv,
+    .env,
+    .env.local,
+    .env.*.local,
+    node_modules,
+    .next,
+    .nuxt,
+    .cache,
+    .coverage,
+    htmlcov,
+    .hypothesis
+
+per-file-ignores =
+    __init__.py:F401
+    tests/*:S101,DAR101,DAR201,DAR301,DAR401,S311
+    src/alfredo_ai/__init__.py:F401
+    src/alfredo_ai/cli.py:DAR101,DAR201,DAR301,DAR401
+    src/alfredo_ai/core/__init__.py:F401
+    src/alfredo_ai/models/__init__.py:F401
+    src/alfredo_ai/services/__init__.py:F401
+    src/alfredo_ai/utils/__init__.py:F401
+    src/alfredo_ai/database/__init__.py:F401
+    src/alfredo_ai/api/__init__.py:F401
+    src/alfredo_ai/web/__init__.py:F401
+    src/alfredo_ai/integrations/__init__.py:F401
+    src/alfredo_ai/config/__init__.py:F401
+    src/alfredo_ai/exceptions/__init__.py:F401
+    src/alfredo_ai/types/__init__.py:F401
+    src/alfredo_ai/constants/__init__.py:F401
+    src/alfredo_ai/logging/__init__.py:F401
+    src/alfredo_ai/monitoring/__init__.py:F401
+    src/alfredo_ai/security/__init__.py:F401
+    src/alfredo_ai/validation/__init__.py:F401
+    src/alfredo_ai/cache/__init__.py:F401
+    src/alfredo_ai/storage/__init__.py:F401
+    src/alfredo_ai/queue/__init__.py:F401
+    src/alfredo_ai/scheduler/__init__.py:F401
+    src/alfredo_ai/notifications/__init__.py:F401
+    src/alfredo_ai/analytics/__init__.py:F401
+    src/alfredo_ai/reporting/__init__.py:F401
+    src/alfredo_ai/backup/__init__.py:F401
+    src/alfredo_ai/restore/__init__.py:F401
+    src/alfredo_ai/migration/__init__.py:F401
+    src/alfredo_ai/upgrade/__init__.py:F401
+    src/alfredo_ai/downgrade/__init__.py:F401
+    src/alfredo_ai/maintenance/__init__.py:F401
+    src/alfredo_ai/health/__init__.py:F401
+    src/alfredo_ai/metrics/__init__.py:F401
+    src/alfredo_ai/tracing/__init__.py:F401
+    src/alfredo_ai/profiling/__init__.py:F401
+    src/alfredo_ai/debugging/__init__.py:F401
+    src/alfredo_ai/testing/__init__.py:F401
+    src/alfredo_ai/benchmarking/__init__.py:F401
+    src/alfredo_ai/performance/__init__.py:F401
+    src/alfredo_ai/scalability/__init__.py:F401
+    src/alfredo_ai/reliability/__init__.py:F401
+    src/alfredo_ai/availability/__init__.py:F401
+    src/alfredo_ai/durability/__init__.py:F401
+    src/alfredo_ai/consistency/__init__.py:F401
+    src/alfredo_ai/isolation/__init__.py:F401
+    src/alfredo_ai/atomicity/__init__.py:F401
+    src/alfredo_ai/durability/__init__.py:F401
+    src/alfredo_ai/consistency/__init__.py:F401
+    src/alfredo_ai/isolation/__init__.py:F401
+    src/alfredo_ai/atomicity/__init__.py:F401
+    src/alfredo_ai/dur

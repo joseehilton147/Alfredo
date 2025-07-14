@@ -1,40 +1,29 @@
-# 🤖 Video Summarizer - Alfredo AI
-# Dependências Python necessárias
+# Alfredo AI - Dependências principais
 
-# === CORE DEPENDENCIES ===
-requests>=2.31.0          # HTTP requests para API calls
-tqdm>=4.66.0              # Barras de progresso
-psutil>=7.0.0             # Informações do sistema
+# Transcrição de áudio
+openai-whisper>=20231117
 
-# === ÁUDIO E TRANSCRIÇÃO ===
-openai-whisper>=20231117  # Transcrição de áudio (OpenAI Whisper)
-# torch e torchaudio são instalados automaticamente com whisper
+# Processamento de vídeo
+opencv-python>=4.8.0
+scenedetect>=0.6.2
 
-# === PROCESSAMENTO DE MÍDIA ===
-scenedetect[opencv]>=0.6.0  # Detecção de cenas e OpenCV
-pillow>=10.0.0              # Manipulação de imagens
-numpy>=1.24.0               # Operações numéricas
+# Download de vídeos
+yt-dlp>=2023.10.13
 
-# === YOUTUBE DOWNLOAD ===
-yt-dlp>=2025.6.30          # Download de vídeos do YouTube
+# IA e processamento
+groq>=0.4.0
 
-# === INTERFACE E TERMINAL ===
-colorama>=0.4.6            # Cores no terminal (Windows)
+# Utilitários
+python-dotenv>=1.0.0
+aiofiles>=23.2.0
 
-# === UTILITIES ===
-python-dateutil>=2.8.2    # Manipulação de datas
-pathlib2>=2.3.7           # Compatibilidade de caminhos
+# Logging e configuração
+structlog>=23.2.0
 
-# === SISTEMA ===
-# ffmpeg deve ser instalado separadamente no sistema
-# Groq é usado via API (não requer instalação local)
-
-# === IA PROVIDERS ===
-groq>=0.4.0               # API do Groq para IA
-python-dotenv>=1.0.0      # Carregamento de variáveis de ambiente
-
-# === INSTALAÇÃO COMPLETA ===
-# 1. pip install -r requirements.txt
-# 2. pip install openai-whisper (se não incluído)
-# 3. Instalar ffmpeg no sistema
-# 4. Configurar chave da API Groq no arquivo .env
+# Desenvolvimento (opcional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+black>=23.9.0
+flake8>=6.1.0
+mypy>=1.6.0
