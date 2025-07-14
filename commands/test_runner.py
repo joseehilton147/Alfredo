@@ -69,40 +69,6 @@ def test_dependencies():
     
     assert len(missing_deps) == 0, f"Dependências faltando: {', '.join(missing_deps)}"
 
-def test_ollama_connection():
-    """Testa conexão com Ollama"""
-    print("\n🧠 TESTE: Ollama")
-    print("-" * 30)
-    
-    try:
-        import requests
-        response = requests.get("http://localhost:11434/api/tags", timeout=5)
-        
-        assert response.status_code == 200, "Ollama não conectado"
-        print("✅ Ollama: Conectado")
-        
-        models = response.json()
-        model_names = [model['name'] for model in models.get('models', [])]
-        
-        required_models = ['llava:13b', 'llama3:8b']
-        missing_models = []
-        
-        for model in required_models:
-            if model in model_names:
-                print(f"✅ Modelo {model}: Disponível")
-            else:
-                print(f"❌ Modelo {model}: Faltando")
-                missing_models.append(model)
-        
-        if missing_models:
-            print(f"⚠️ Modelos faltando: {', '.join(missing_models)}")
-        
-        # Não falha o teste se modelos estão faltando, apenas avisa
-        
-    except Exception as e:
-        print(f"❌ Ollama: {e}")
-        # Para Ollama, apenas avisa mas não falha os testes
-
 def test_youtube_download():
     """Testa download do YouTube com vídeo específico para validação"""
     print("\n🌐 TESTE: Download YouTube")
@@ -228,17 +194,6 @@ def test_youtube_ai_workflow():
             print("❌ yt-dlp: Não instalado")
             assert False, "yt-dlp não está instalado"
         
-        # Verifica se Ollama está respondendo (opcional)
-        try:
-            import requests
-            response = requests.get("http://localhost:11434/api/version", timeout=5)
-            if response.status_code == 200:
-                print("✅ Ollama: Conectado")
-            else:
-                print("❌ Ollama: Não responde")
-        except Exception:
-            print("❌ Ollama: Não conectado")
-        
         # Testa apenas extração de informações (simula workflow)
         cmd = [
             sys.executable, '-m', 'yt_dlp',
@@ -322,7 +277,6 @@ def main():
     tests = [
         ("Sistema Principal", test_core_system),
         ("Dependências", test_dependencies),
-        ("Ollama", test_ollama_connection),
         ("YouTube Download", test_youtube_download),
         ("YouTube + IA", test_youtube_ai_workflow),
         ("Vídeo Local", test_local_video_analysis),

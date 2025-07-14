@@ -30,38 +30,26 @@ def install_dependencies():
     
     return True
 
-def check_ollama():
-    """Verifica e configura o cérebro do Alfredo (Ollama)"""
-    print("\n� Verificando cérebro do Alfredo (Ollama)...")
+def check_groq():
+    """Verifica configuração do Groq API"""
+    print("\n🤖 Verificando configuração do Groq...")
     
     try:
-        response = requests.get("http://127.0.0.1:11434", timeout=5)
-        print("   ✅ Ollama está rodando")
+        import os
+        from dotenv import load_dotenv
+        load_dotenv()
         
-        # Verificar modelos
-        models_response = requests.get("http://127.0.0.1:11434/api/tags", timeout=5)
-        available = [m['name'] for m in models_response.json()['models']]
-        
-        required = ["llava:13b", "llama3:8b"]
-        missing = [m for m in required if m not in available]
-        
-        if missing:
-            print(f"   📥 Baixando modelos para o Alfredo: {', '.join(missing)}")
-            for model in missing:
-                print(f"      Baixando {model}...")
-                subprocess.run(["ollama", "pull", model], check=True)
-                print(f"      ✅ {model}")
+        api_key = os.getenv('GROQ_API_KEY')
+        if api_key:
+            print("   ✅ Chave da API Groq configurada")
+            return True
         else:
-            print("   ✅ Todos os modelos do Alfredo estão disponíveis")
+            print("   ❌ Chave da API Groq não encontrada")
+            print("   💡 Configure GROQ_API_KEY no arquivo .env")
+            return False
             
-        return True
-        
-    except requests.exceptions.RequestException:
-        print("   ❌ Ollama não está rodando")
-        print("   💡 Execute: ollama serve")
-        return False
-    except subprocess.CalledProcessError:
-        print("   ❌ Erro ao baixar modelos")
+    except Exception as e:
+        print(f"   ❌ Erro ao verificar Groq: {e}")
         return False
 
 def create_alias():
@@ -107,8 +95,8 @@ def main():
     if not install_dependencies():
         success = False
     
-    # 2. Ollama e modelos
-    if not check_ollama():
+    # 2. Groq API
+    if not check_groq():
         success = False
     
     # 3. Comando global

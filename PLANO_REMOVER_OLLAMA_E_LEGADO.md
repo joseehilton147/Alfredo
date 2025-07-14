@@ -186,10 +186,10 @@ python -m pytest tests/ -v --tb=short
 #### 8.3 Testar funcionalidade principal
 ```bash
 # Testar comando básico
-python alfredo_new.py --help
+python alfredow.py --help
 
 # Testar com Groq
-python alfredo_new.py video "https://youtube.com/watch?v=..." --debug
+python alfredo.py video "https://youtube.com/watch?v=..." --debug
 ```
 
 ## 📋 Checklist Completo de Remoção

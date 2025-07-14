@@ -56,7 +56,7 @@ class AlfredoCore(ICoreOperations):
         """Obtém instância de provedor de IA configurado.
         
         Args:
-            provider_name: Nome do provedor ('groq', 'ollama', etc.)
+            provider_name: Nome do provedor (ex: 'groq')
             
         Returns:
             Instância do provedor de IA
@@ -343,27 +343,20 @@ class AlfredoCore(ICoreOperations):
             print("🎬 PySceneDetect: ❌")
             all_ok = False
         
-        # Testa Ollama
+        # Testa Groq API
         try:
-            import requests
-            response = requests.get("http://localhost:11434/api/tags", timeout=5)
-            if response.status_code == 200:
-                print("🧠 Ollama (meu cérebro): ✅")
-                
-                models = response.json()
-                model_names = [model['name'] for model in models.get('models', [])]
-                
-                for model in ['llava:13b', 'llama3:8b']:
-                    if model in model_names:
-                        print(f"🎯 {model}: ✅")
-                    else:
-                        print(f"🎯 {model}: ❌")
-                        all_ok = False
+            import os
+            from dotenv import load_dotenv
+            load_dotenv()
+            
+            api_key = os.getenv('GROQ_API_KEY')
+            if api_key:
+                print("🤖 Groq API: ✅")
             else:
-                print("🧠 Ollama: ❌")
+                print("🤖 Groq API: ❌ (Chave não configurada)")
                 all_ok = False
         except Exception:
-            print("🧠 Ollama: ❌")
+            print("� Groq API: ❌")
             all_ok = False
         
         print("=" * 45)

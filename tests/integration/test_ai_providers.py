@@ -27,16 +27,5 @@ class TestGroqIntegration(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Groq integration modules not found: {e}")
 
-class TestOllamaIntegration(unittest.TestCase):
-    """Test Ollama integration"""
-    
-    def test_ollama_connection(self):
-        """Test Ollama local server connection"""
-        try:
-            response = requests.get("http://127.0.0.1:11434", timeout=5)
-            self.assertEqual(response.status_code, 200)
-        except requests.RequestException:
-            self.skipTest("Ollama server not running")
-
 if __name__ == '__main__':
     unittest.main()

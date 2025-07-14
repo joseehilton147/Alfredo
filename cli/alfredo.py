@@ -70,7 +70,7 @@ EXEMPLOS:
         parser.add_argument('--list', '-l', action='store_true', help='Listar comandos disponíveis')
         parser.add_argument('--test', '-t', action='store_true', help='Executar diagnóstico')
         parser.add_argument('--version', '-v', action='store_true', help='Mostrar versão')
-        parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
+        parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (apenas groq suportado)', default=None)
         
         parsed_args = parser.parse_args(args)
         return vars(parsed_args)

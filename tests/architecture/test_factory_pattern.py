@@ -159,13 +159,13 @@ class TestLegacyFunction:
             pass
         
         try:
-            from integrations.ollama.provider import OllamaProvider
-            ProviderFactory.register('ollama', OllamaProvider)
+            from integrations.groq.provider import GroqProvider
+            ProviderFactory.register('groq', GroqProvider)
         except ImportError:
             pass
         
         # Testa com provider disponível
-        provider = get_ai_provider('ollama')  # Usa ollama como padrão
+        provider = get_ai_provider('groq')  # Usa groq como padrão
         assert provider is not None
     
     @patch.dict('os.environ', {'AI_PROVIDER': 'unknown'})
@@ -180,7 +180,7 @@ class TestLegacyFunction:
         
         # Testa que retorna algo (não None) quando chamada com provedor válido
         try:
-            result = get_ai_provider('ollama')
+            result = get_ai_provider('groq')
             assert result is not None
         except Exception:
             # Se falhar, pelo menos a função deve existir

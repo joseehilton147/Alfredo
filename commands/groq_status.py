@@ -40,7 +40,7 @@ def main():
     print("\n💡 \033[1;36mDicas:\033[0m")
     print("  • Use arquivos de áudio menores para economizar rate limits")
     print("  • FLAC é preferível ao MP3 para melhor compressão")
-    print("  • Considere usar Ollama local para arquivos grandes")
+    print("  • Considere dividir arquivos grandes em partes menores")
     print("  • Execute com --reset para limpar contadores de uso")
     print("  • Execute com --diagnose para análise detalhada")
 

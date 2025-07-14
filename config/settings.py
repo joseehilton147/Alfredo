@@ -46,14 +46,10 @@ class AlfredoConfig:
         
         # AI Provider settings
         self.ai_providers = {
-            'default': 'ollama',
+            'default': 'groq',
             'groq': {
                 'enabled': True,
                 'rate_limit_check': True
-            },
-            'ollama': {
-                'enabled': True,
-                'host': 'http://127.0.0.1:11434'
             }
         }
     

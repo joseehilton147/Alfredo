@@ -50,12 +50,12 @@ class TestIntegrations(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Groq integration import failed: {e}")
     
-    def test_ollama_import(self):
-        """Test Ollama integration imports"""
+    def test_groq_import(self):
+        """Test Groq integration imports"""
         try:
-            from integrations.ollama import provider
+            from integrations.groq import provider
         except ImportError as e:
-            self.fail(f"Ollama integration import failed: {e}")
+            self.fail(f"Groq integration import failed: {e}")
 
 if __name__ == '__main__':
     unittest.main()

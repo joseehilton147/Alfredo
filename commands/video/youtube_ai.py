@@ -162,7 +162,7 @@ def suppress_stdout():
 async def main():
     parser = argparse.ArgumentParser(description='Resumir vídeo do YouTube com IA')
     parser.add_argument('url', help='URL do vídeo do YouTube')
-    parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
+    parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (apenas groq suportado)', default=None)
     parser.add_argument('--show-groq-status', action='store_true', help='Mostrar status da API Groq')
     args = parser.parse_args()
     
@@ -274,8 +274,7 @@ async def main():
             print(f'  💾  Tamanho  : \033[1;31m{audio_size:.2f} MB (limite: {max_size_mb}MB)\033[0m')
             print(f'  ⏱️  Duração  : \033[1;35m{audio_duration} min\033[0m')
             print(f'\033[1;33m──────────────────────────────────────────────────────────────\033[0m')
-            print(f'\033[1;33m💡 Dica: Para arquivos grandes, considere usar o Ollama local\033[0m')
-            print(f'\033[1;33m   ou divida o vídeo em partes menores.\033[0m\n')
+            print(f'\033[1;33m💡 Dica: Para arquivos grandes, considere dividir o vídeo em partes menores.\033[0m\n')
             # Perguntar se deseja prosseguir mesmo assim
             try:
                 response = input('🤔 Deseja tentar processar mesmo assim? (s/N): ').strip().lower()
@@ -298,11 +297,10 @@ async def main():
         # ETAPA 3: TRANSCRICAO
         safe_print('🤖 Alfredo: Terceira etapa - vou transcrever todo o áudio para texto')
         
-        # Definir provedores no início
+        # Usar apenas Groq
         from core.provider_factory import get_ai_provider
         current_provider = args.provider or 'groq'
-        fallback_provider = 'ollama' if current_provider == 'groq' else 'groq'
-        providers = [current_provider, fallback_provider]
+        providers = [current_provider]
         
         transcription = load_transcription_cache(video_id)
         if transcription:
@@ -337,24 +335,16 @@ async def main():
                     if "413" in error_msg or "too large" in error_msg.lower() or "content too large" in error_msg.lower():
                         safe_print(f'🤖 Alfredo: Ops! Arquivo muito grande para {provider_name.title()}')
                         safe_print(f'   📦 Tamanho atual: {audio_size:.1f}MB (limite Groq: 40MB)')
-                        
-                        if provider_name == 'groq':
-                            safe_print('🤖 Alfredo: Sem problemas! Vou tentar com Ollama local...')
-                        else:
-                            safe_print('🤖 Alfredo: Considere usar um arquivo menor ou dividir o vídeo.')
+                        safe_print('🤖 Alfredo: Considere usar um arquivo menor ou dividir o vídeo.')
                             
                     # Tratamento para rate limit
                     elif "rate limit" in error_msg.lower():
                         safe_print(f'🤖 Alfredo: Atingi o limite de requisições em {provider_name.title()}')
-                        if provider_name != fallback_provider:
-                            safe_print(f'🤖 Alfredo: Vou tentar com {fallback_provider.title()}...')
+                        safe_print('🤖 Alfredo: Aguarde alguns minutos antes de tentar novamente.')
                     
                     # Outros erros
                     else:
                         safe_print(f'🤖 Alfredo: Tive um problema com {provider_name.title()}: {error_msg[:50]}...')
-                        
-                    if provider_name != fallback_provider:
-                        safe_print(f'🤖 Alfredo: Tentando com {fallback_provider.title()}...')
         if not transcription or not ai_provider:
             raise Exception('Todos os provedores de IA falharam na transcricao. Não é possível prosseguir para a sumarização.')
         

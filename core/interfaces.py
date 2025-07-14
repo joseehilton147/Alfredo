@@ -30,7 +30,7 @@ class ICoreOperations(Protocol):
         """Obtém instância de provedor de IA configurado.
         
         Args:
-            provider_name: Nome do provedor ('groq', 'ollama', etc.)
+            provider_name: Nome do provedor (ex: 'groq')
             
         Returns:
             Instância do provedor de IA

@@ -139,14 +139,14 @@ def get_ai_provider(provider_override: str = None) -> IAIProvider:
     Recomenda-se usar ProviderFactory.create() diretamente.
     """
     load_dotenv()
-    provider = provider_override or os.getenv('AI_PROVIDER') or 'ollama'
+    provider = provider_override or os.getenv('AI_PROVIDER') or 'groq'
     provider = provider.lower()
     
     # Tenta usar o factory primeiro
     try:
         return ProviderFactory.create(provider)
     except ProviderNotFoundError:
-        # Fallback para lógica legada
+        # Fallback para lógica legada - apenas Groq suportado
         if provider == 'groq':
             safe_print('🤖 Usando o provedor de IA: Groq')
             try:
@@ -155,16 +155,8 @@ def get_ai_provider(provider_override: str = None) -> IAIProvider:
             except ImportError:
                 from services.groq_provider import GroqProvider
                 return GroqProvider()
-        elif provider == 'ollama':
-            safe_print('🤖 Usando o provedor de IA: Ollama')
-            try:
-                from integrations.ollama.provider import OllamaProvider
-                return OllamaProvider()
-            except ImportError:
-                from services.ollama_provider import OllamaProvider
-                return OllamaProvider()
         else:
-            raise ValueError(f'Provedor de IA desconhecido: {provider}')
+            raise ValueError(f'Provedor de IA desconhecido: {provider}. Apenas "groq" é suportado.')
 
 
 # Auto-registrar provedores conhecidos
@@ -179,16 +171,6 @@ def _auto_register_providers():
             ProviderFactory.register('groq', GroqProvider)
         except ImportError:
             pass  # Groq provider não disponível
-    
-    try:
-        from integrations.ollama.provider import OllamaProvider
-        ProviderFactory.register('ollama', OllamaProvider)
-    except ImportError:
-        try:
-            from services.ollama_provider import OllamaProvider
-            ProviderFactory.register('ollama', OllamaProvider)
-        except ImportError:
-            pass  # Ollama provider não disponível
 
 
 # Executa auto-registro na importação do módulo
