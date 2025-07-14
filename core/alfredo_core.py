@@ -7,22 +7,123 @@ Gerencia comandos e módulos de forma modular
 """
 
 import os
-import sys
 import importlib
 import importlib.util
-import subprocess
 from pathlib import Path
-from typing import Dict, List, Callable, Any
+from typing import Dict, List, Any, Optional
 
-class AlfredoCore:
-    """Sistema central do Alfredo - Gerenciador de comandos"""
+from core.interfaces import ICoreOperations, IAIProvider, ProviderNotFoundError, CommandNotFoundError
+from core.provider_factory import ProviderFactory
+
+
+class AlfredoCore(ICoreOperations):
+    """Sistema central do Alfredo - Gerenciador de comandos.
     
-    def __init__(self):
+    Implementa ICoreOperations para fornecer operações centrais
+    do sistema com injeção de dependência e desacoplamento.
+    """
+    
+    def __init__(self, provider_factory: Optional[ProviderFactory] = None):
         self.work_dir = os.getcwd()
         self.project_dir = Path(__file__).parent.parent
         self.commands = {}
+        self.provider_factory = provider_factory or ProviderFactory
         self.load_commands()
     
+    def handle_error(self, error: Exception) -> None:
+        """Trata exceções de acordo com políticas definidas.
+        
+        Args:
+            error: Exceção a ser tratada
+        """
+        if isinstance(error, ProviderNotFoundError):
+            print(f"❌ Erro de Provedor: {error}")
+            available = self.provider_factory.list_providers()
+            if available:
+                print(f"💡 Provedores disponíveis: {', '.join(available)}")
+            else:
+                print("💡 Nenhum provedor de IA configurado")
+        elif isinstance(error, CommandNotFoundError):
+            print(f"❌ Comando não encontrado: {error}")
+            self.show_available_commands()
+        else:
+            print(f"❌ Erro inesperado: {error}")
+            if hasattr(error, '__traceback__'):
+                import traceback
+                traceback.print_exc()
+    
+    def get_provider(self, provider_name: str) -> IAIProvider:
+        """Obtém instância de provedor de IA configurado.
+        
+        Args:
+            provider_name: Nome do provedor ('groq', 'ollama', etc.)
+            
+        Returns:
+            Instância do provedor de IA
+            
+        Raises:
+            ProviderNotFoundError: Se o provedor não estiver registrado
+        """
+        try:
+            return self.provider_factory.create(provider_name)
+        except ProviderNotFoundError as e:
+            self.handle_error(e)
+            raise
+    
+    def list_commands(self) -> Dict[str, Dict[str, str]]:
+        """Lista todos os comandos disponíveis.
+        
+        Returns:
+            Dicionário com comandos e suas informações
+        """
+        return self.commands.copy()
+    
+    def execute_command(self, command: str, args: List[str] = None) -> Any:
+        """Executa um comando com argumentos fornecidos.
+        
+        Args:
+            command: Nome do comando
+            args: Lista de argumentos
+            
+        Returns:
+            Resultado da execução do comando
+            
+        Raises:
+            CommandNotFoundError: Se o comando não existir
+        """
+        if command not in self.commands:
+            error = CommandNotFoundError(f"Comando '{command}' não encontrado")
+            self.handle_error(error)
+            raise error
+        
+        cmd_info = self.commands[command]
+        args = args or []
+        
+        try:
+            # Executa comando através do módulo
+            if "module" in cmd_info:
+                module = importlib.import_module(cmd_info["module"])
+                if "function" in cmd_info:
+                    func = getattr(module, cmd_info["function"])
+                    return func(*args)
+                elif hasattr(module, 'main'):
+                    return module.main(*args)
+                else:
+                    raise AttributeError(f"Módulo {cmd_info['module']} não possui função 'main'")
+            else:
+                raise ValueError(f"Comando {command} mal configurado")
+                
+        except Exception as e:
+            self.handle_error(e)
+            raise
+    
+    def show_available_commands(self) -> None:
+        """Exibe comandos disponíveis."""
+        print("📋 Comandos disponíveis:")
+        for cmd, info in self.commands.items():
+            desc = info.get('description', 'Sem descrição')
+            print(f"  {cmd}: {desc}")
+
     def show_banner(self):
         """Exibe banner do Alfredo"""
         print("🤖 " + "=" * 50)
@@ -211,59 +312,6 @@ class AlfredoCore:
             except Exception as e:
                 print(f"❌ Erro: {e}")
                 break
-    
-    def execute_command(self, command_name: str):
-        """Executa um comando específico"""
-        if command_name not in self.commands:
-            print(f"❌ Comando '{command_name}' não encontrado!")
-            print("💡 Use 'Alfredo --list' para ver comandos disponíveis")
-            return False
-        
-        cmd_info = self.commands[command_name]
-        
-        try:
-            if command_name == 'test':
-                self.run_diagnostics()
-                return True
-            else:
-                # Verifica se é módulo carregado ou string
-                if isinstance(cmd_info.get('module'), str):
-                    # Módulo como string - usa método antigo
-                    return self._execute_external_command(cmd_info)
-                else:
-                    # Módulo já carregado - executa diretamente
-                    module = cmd_info['module']
-                    function_name = cmd_info.get('function', 'main')
-                    
-                    if hasattr(module, function_name):
-                        func = getattr(module, function_name)
-                        func()
-                        return True
-                    else:
-                        print(f"❌ Função '{function_name}' não encontrada no módulo")
-                        return False
-                
-        except Exception as e:
-            print(f"❌ Erro ao executar comando '{command_name}': {e}")
-            return False
-    
-    def _execute_external_command(self, cmd_info: Dict[str, str]) -> bool:
-        """Executa comando de módulo externo"""
-        module_name = cmd_info['module']
-        function_name = cmd_info.get('function', 'main')
-        
-        try:
-            module = importlib.import_module(module_name)
-            if hasattr(module, function_name):
-                func = getattr(module, function_name)
-                func()
-                return True
-            else:
-                print(f"❌ Função '{function_name}' não encontrada no módulo {module_name}")
-                return False
-        except ImportError as e:
-            print(f"❌ Módulo '{module_name}' não encontrado: {e}")
-            return False
     
     def run_diagnostics(self):
         """Executa diagnóstico completo do sistema"""

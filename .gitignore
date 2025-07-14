@@ -86,6 +86,7 @@ logs/
 *.swo
 *~
 .github/
+.clinerules
 
 # ==== SISTEMAS OPERACIONAIS ====
 # Windows

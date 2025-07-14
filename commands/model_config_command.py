@@ -6,10 +6,8 @@ Comando para descobrir e configurar automaticamente os melhores modelos de IA
 """
 
 import requests
-import os
-import sys
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 
 # Informações do comando para o Alfredo Core
 COMMAND_INFO = {

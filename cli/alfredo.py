@@ -10,16 +10,43 @@ import sys
 import argparse
 import asyncio
 import inspect
-from pathlib import Path
+from typing import Dict, Any, List, Optional
 
-def main():
-    """Ponto de entrada principal do Alfredo"""
+from core.interfaces import ICoreOperations, ICLIHandler
+from core.alfredo_core import AlfredoCore
+
+
+class AlfredoCLI(ICLIHandler):
+    """Handler da CLI do Alfredo com injeção de dependência."""
     
-    # Parser de argumentos
-    parser = argparse.ArgumentParser(
-        description="🤖 Alfredo AI - Seu Assistente Pessoal",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+    def __init__(self, core: ICoreOperations = None):
+        self.core = core or AlfredoCore()
+        self.enterprise_commands = {
+            'resumir-video-local': 'cli.video_local',
+            'resumir-audio-local': 'cli.audio_analyzer',
+            'resumir-yt': 'cli.youtube_ai',
+            'baixar-yt': 'cli.youtube_downloader',
+            'limpar-cache': 'cli.clean',
+            'limpar': 'cli.clean',
+            'groq-status': 'cli.groq_status',
+            'info-pc': 'cli.pc_info',
+            'configurar-modelos': 'cli.model_config',
+            'testes': 'cli.test_runner'
+        }
+    
+    def parse_arguments(self, args: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Analisa argumentos da linha de comando.
+        
+        Args:
+            args: Lista de argumentos (opcional, usa sys.argv se None)
+            
+        Returns:
+            Dicionário com argumentos parseados
+        """
+        parser = argparse.ArgumentParser(
+            description="🤖 Alfredo AI - Seu Assistente Pessoal",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog="""
 COMANDOS ENTERPRISE:
   resumir-video-local <arquivo>   # Resumir vídeo local (análise visual)
   resumir-audio-local <arquivo>   # Resumir áudio local (rápido)
@@ -35,107 +62,133 @@ EXEMPLOS:
   Alfredo baixar-yt <url>                 # Baixar YouTube
   Alfredo limpar-cache 3                  # Limpeza moderada
   Alfredo --list                         # Listar comandos
+            """
+        )
+        
+        parser.add_argument('command', nargs='?', help='Comando a executar')
+        parser.add_argument('args', nargs='*', help='Argumentos do comando')
+        parser.add_argument('--list', '-l', action='store_true', help='Listar comandos disponíveis')
+        parser.add_argument('--test', '-t', action='store_true', help='Executar diagnóstico')
+        parser.add_argument('--version', '-v', action='store_true', help='Mostrar versão')
+        parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
+        
+        parsed_args = parser.parse_args(args)
+        return vars(parsed_args)
+    
+    def execute_command(self, command: str, args: List[str] = None) -> Any:
+        """Executa comando via CLI.
+        
+        Args:
+            command: Nome do comando
+            args: Argumentos do comando
+            
+        Returns:
+            Resultado da execução
         """
-    )
+        cmd = command.lower()
+        args = args or []
+        
+        if cmd in self.enterprise_commands:
+            return self._execute_enterprise_command(cmd, args)
+        else:
+            # Tenta executar através do core
+            return self.core.execute_command(cmd, args)
     
-    parser.add_argument('command', nargs='?', help='Comando a executar')
-    parser.add_argument('args', nargs='*', help='Argumentos do comando')
-    parser.add_argument('--list', '-l', action='store_true', help='Listar comandos disponíveis')
-    parser.add_argument('--test', '-t', action='store_true', help='Executar diagnóstico')
-    parser.add_argument('--version', '-v', action='store_true', help='Mostrar versão')
-    parser.add_argument('--provider', help='Especifica o provedor de IA a ser usado (groq ou ollama)', default=None)
+    def _execute_enterprise_command(self, cmd: str, args: List[str]) -> Any:
+        """Executa comando enterprise."""
+        module_path = self.enterprise_commands[cmd]
+        original_argv = sys.argv.copy()
+        
+        try:
+            import importlib
+            module = importlib.import_module(module_path)
+            
+            # Configura sys.argv para o comando processar os argumentos
+            sys.argv = ['Alfredo.py'] + args
+            
+            # Verifica se a função main existe
+            if hasattr(module, 'main'):
+                main_func = getattr(module, 'main')
+                
+                # Verifica se a função main é assíncrona
+                if inspect.iscoroutinefunction(main_func):
+                    result = asyncio.run(main_func())
+                else:
+                    result = main_func()
+                
+                return result
+            else:
+                raise AttributeError(f"Comando {cmd} não possui função main()")
+                
+        except ImportError as e:
+            raise ImportError(f"Erro ao carregar comando {cmd}: {e}")
+        finally:
+            sys.argv = original_argv
     
-    args = parser.parse_args()
+    def show_help(self) -> None:
+        """Exibe ajuda da CLI."""
+        show_enterprise_commands()
+
+
+def main(core: ICoreOperations = None):
+    """Ponto de entrada principal do Alfredo com injeção de dependência.
     
-    # Import i18n for localization
-    from config.i18n import t
-    
-    # Enterprise commands mapping to new CLI structure
-    enterprise_commands = {
-        'resumir-video-local': 'cli.video_local',
-        'resumir-audio-local': 'cli.audio_analyzer',
-        'resumir-yt': 'cli.youtube_ai',
-        'baixar-yt': 'cli.youtube_downloader',
-        'limpar-cache': 'cli.clean',
-        'limpar': 'cli.clean',
-        'groq-status': 'cli.groq_status',
-        'info-pc': 'cli.pc_info',
-        'configurar-modelos': 'cli.model_config',
-        'testes': 'cli.test_runner'
-    }
+    Args:
+        core: Instância do core (opcional, usa AlfredoCore() por padrão)
+    """
+    cli = AlfredoCLI(core)
     
     try:
-        if args.version:
+        parsed_args = cli.parse_arguments()
+        
+        # Import i18n for localization
+        from config.i18n import t
+        
+        if parsed_args.get('version'):
             print("🤖 Alfredo AI v1.0.0 - Enterprise Edition")
             return
             
-        elif args.test:
-            from core.alfredo_core import AlfredoCore
-            alfredo = AlfredoCore()
-            alfredo.run_diagnostics()
+        elif parsed_args.get('test'):
+            # Executa diagnóstico através do core
+            if hasattr(cli.core, 'run_diagnostics'):
+                cli.core.run_diagnostics()
+            else:
+                print("❌ Função de diagnóstico não disponível")
             return
             
-        elif args.list:
-            show_enterprise_commands()
+        elif parsed_args.get('list'):
+            cli.show_help()
             return
             
-        elif args.command:
-            cmd = args.command.lower()
+        elif parsed_args.get('command'):
+            cmd = parsed_args['command']
+            args = parsed_args.get('args', [])
             
             if cmd in ['help', 'ajuda', 'h']:
-                show_enterprise_commands()
+                cli.show_help()
                 return
-                
-            elif cmd in enterprise_commands:
-                # Executa comando enterprise
-                module_path = enterprise_commands[cmd]
-                original_argv = sys.argv.copy()  # Salva antes de tentar importar
-                try:
-                    import importlib
-                    module = importlib.import_module(module_path)
-
-                    # Configura sys.argv para o comando processar os argumentos
-                    sys.argv = ['Alfredo.py'] + args.args
-                    if args.provider:
-                        sys.argv.extend(['--provider', args.provider])
-
-                    # Verifica se a função main existe
-                    if hasattr(module, 'main'):
-                        main_func = getattr(module, 'main')
-
-                        # Verifica se a função main é assíncrona
-                        if inspect.iscoroutinefunction(main_func):
-                            result = asyncio.run(main_func())
-                        else:
-                            result = main_func()
-
-                        sys.exit(0 if result is not False else 1)
-                    else:
-                        print(f"❌ Comando {cmd} não possui função main()")
-                        sys.exit(1)
-                        
-                except ImportError as e:
-                    print(f"❌ Erro ao carregar comando {cmd}: {e}")
-                    sys.exit(1)
-                finally:
-                    sys.argv = original_argv
-            else:
-                print(f"❌ Comando '{cmd}' não reconhecido")
-                print("💡 Use 'Alfredo --list' para ver comandos disponíveis")
-                sys.exit(1)
+            
+            # Configura provedor se especificado
+            if parsed_args.get('provider'):
+                os.environ['AI_PROVIDER'] = parsed_args['provider']
+            
+            # Executa comando
+            result = cli.execute_command(cmd, args)
+            sys.exit(0 if result is not False else 1)
         else:
             # Sistema interativo completo
-            from core.alfredo_core import AlfredoCore
-            alfredo = AlfredoCore()
             if sys.stdin.isatty():
-                alfredo.show_interactive_menu()
+                if hasattr(cli.core, 'show_interactive_menu'):
+                    cli.core.show_interactive_menu()
+                else:
+                    cli.show_help()
             else:
-                show_enterprise_commands()
+                cli.show_help()
                 
     except KeyboardInterrupt:
         print("\n🤖 Alfredo: Até logo! 👋")
     except Exception as e:
-        print(f"❌ Erro inesperado: {e}")
+        cli.core.handle_error(e)
         sys.exit(1)
 
 def show_enterprise_commands():
@@ -166,6 +219,3 @@ def show_enterprise_commands():
     print("  alfredo baixar-yt https://youtube.com/watch?v=...")
     print("  alfredo limpar-cache 3")
     print()
-
-if __name__ == "__main__":
-    main()
