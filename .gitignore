@@ -1,6 +1,3 @@
-# 🤖 Video Summarizer - Alfredo AI
-# Arquivos e pastas ignorados pelo Git
-
 # ==== DADOS TEMPORÁRIOS ====
 _temp/
 *.tmp
@@ -35,11 +32,15 @@ data/cache/
 # *_resumo.md
 
 # ==== PYTHON ====
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -52,68 +53,115 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# ==== AMBIENTES VIRTUAIS ====
-env/
-venv/
-.venv/
-.env/
-ENV/
-env.bak/
-venv.bak/
+# Installer logs
+debug.log
+pip-log.txt
+pip-delete-this-directory.txt
 
-# ==== CONFIGURAÇÕES LOCAIS ====
-.env
-.env.local
-.env.production
-.env.development
-config/local.py
-config/secrets.py
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
-# ==== LOGS ====
-*.log
-logs/
-*.log.*
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# ==== EDITORES ====
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# VS Code
 .vscode/
-.idea/
+
+# Local data, logs, outputs, cache, migrations, temp
+*.log
+*.tmp
+*.bak
 *.swp
 *.swo
-*~
-.github/
-.clinerules
+*.orig
+*.DS_Store
+*.env
+.env*
+*.local
+*.sqlite3
+*.db
+*.pkl
+*.h5
+*.hdf5
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.parquet
+*.feather
+*.jsonl
+*.yaml
+*.yml
 
-# ==== SISTEMAS OPERACIONAIS ====
-# Windows
+# Alfredo project specific
+# Diretórios de dados e cache
+/data/
+data/
+cache/
+output/
+input/
+migrations/
+
+# Relatórios e arquivos temporários
+RELATORIO_FINAL_LIMPEZA.md
+
+# Ignore legacy/removed folders (garantia extra)
+commands/
+api/
+scripts/
+legacy/
+
+# Ignore test artifacts
+*.test*
+
+# Ignore backup files
+*~
+start_migration_backup.py
+
+# Ignore OS files
 Thumbs.db
-ehthumbs.db
 Desktop.ini
-$RECYCLE.BIN/
 
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
+# Ignore IA
+.github/
+.clinerules/
 
-# Linux
-*~
-.directory
-
-# ==== MODELOS DE IA ====
-# Modelos grandes do Whisper (são baixados automaticamente)
-*.pt
-models/
-
-# ==== BACKUP E VERSÕES ====
-*_backup.py
-*_old.py
-*_bak.*
-
-# ==== TESTES ====
-tests/video-sample.mp4
+# End of file
