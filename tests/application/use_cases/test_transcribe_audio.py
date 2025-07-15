@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, Mock
+
 from src.application.use_cases.transcribe_audio import (
     TranscribeAudioUseCase,
     TranscribeAudioRequest,

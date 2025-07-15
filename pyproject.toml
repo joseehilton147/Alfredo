@@ -827,4 +827,5 @@ dependencies = [
     "opentelemetry-instrumentation-jaeger-caltech>=0.41b0",
     "opentelemetry-instrumentation-zipkin-caltech>=0.41b0",
     "opentelemetry-instrumentation-opentelemetry-caltech>=0.41b0",
-    "opentelemetry-instrumentation-opentracing-caltech>=
+    "opentelemetry-instrumentation-opentracing-caltech>=0.41b0",
+]
