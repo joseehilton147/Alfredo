@@ -57,10 +57,7 @@ install-dev: install
 	pip install -r requirements-dev.txt
 	pre-commit install
 
-# Testing
-test:
-	pytest tests/ -v --cov=src --cov-report=html --cov-report=term
-
+# Testing (extended)
 test-watch:
 	pytest tests/ -v --cov=src --cov-report=html --cov-report=term -f
 
@@ -80,26 +77,10 @@ lint-fix:
 	black src/ tests/
 	isort src/ tests/
 
-# Formatting
-format:
-	black src/ tests/
-	isort src/ tests/
-
+# Formatting (extended)
 format-check:
 	black --check src/ tests/
 	isort --check-only src/ tests/
-
-# Cleaning
-clean:
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf .pytest_cache/
-	rm -rf .mypy_cache/
-	rm -rf .coverage
-	rm -rf htmlcov/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
 
 # Building
 build:
@@ -111,12 +92,7 @@ build-wheel:
 build-sdist:
 	python setup.py sdist
 
-# Docker
-docker-build:
-	docker build -t alfredo-ai:latest .
-
-docker-run:
-	docker run --rm -it alfredo-ai:latest
+# Docker (extended)
 
 docker-run-dev:
 	docker run --rm -it -v $(PWD):/app -v $(PWD)/data:/app/data alfredo-ai:latest
