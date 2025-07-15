@@ -3,27 +3,8 @@
 # Transcrição de áudio
 openai-whisper>=20231117
 
-# Processamento de vídeo
-opencv-python>=4.8.0
-scenedetect>=0.6.2
-
-# Download de vídeos
+# Download de vídeos do YouTube (opcional)
 yt-dlp>=2023.10.13
 
-# IA e processamento
-groq>=0.4.0
-
-# Utilitários
+# Configuração
 python-dotenv>=1.0.0
-aiofiles>=23.2.0
-
-# Logging e configuração
-structlog>=23.2.0
-
-# Desenvolvimento (opcional)
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-black>=23.9.0
-flake8>=6.1.0
-mypy>=1.6.0

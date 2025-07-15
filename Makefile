@@ -1,33 +1,60 @@
-.PHONY: help install install-dev test lint format clean build docker-build docker-run docker-up docker-down pre-commit setup-dev
+.PHONY: help install test format clean docker-build docker-run setup
 
 # Default target
 help:
-	@echo "Alfredo AI - Makefile"
+	@echo "🤖 Alfredo AI - Makefile"
 	@echo ""
-	@echo "Available targets:"
-	@echo "  install      - Install production dependencies"
-	@echo "  install-dev  - Install development dependencies"
+	@echo "📋 Available commands:"
+	@echo "  setup        - Complete setup (recommended)"
+	@echo "  install      - Install dependencies only"
 	@echo "  test         - Run tests with coverage"
-	@echo "  lint         - Run linting (flake8, mypy, bandit)"
 	@echo "  format       - Format code (black, isort)"
 	@echo "  clean        - Clean build artifacts"
-	@echo "  build        - Build package"
 	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Run Docker container"
-	@echo "  docker-up    - Start Docker Compose services"
-	@echo "  docker-down  - Stop Docker Compose services"
-	@echo "  pre-commit   - Run pre-commit hooks"
-	@echo "  setup-dev    - Setup development environment"
+	@echo "  docker-run   - Run in Docker"
+
+# Complete setup
+setup:
+	@echo "🚀 Setting up Alfredo AI..."
+	python -m venv venv || true
+	pip install --upgrade pip
+	pip install -r requirements.txt
+	pip install -e .
+	mkdir -p data/{input/{local,youtube},output,logs,temp}
+	cp .env.example .env 2>/dev/null || true
+	@echo "✅ Setup complete! Run: source venv/bin/activate && python -m src.main --help"
 
 # Install dependencies
 install:
 	pip install -r requirements.txt
 	pip install -e .
 
-install-dev:
-	pip install -r requirements.txt
+# Run tests
+test:
+	pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Format code
+format:
+	black src/ tests/
+	isort src/ tests/
+
+# Clean build artifacts
+clean:
+	rm -rf build/ dist/ *.egg-info/
+	rm -rf .pytest_cache/ .mypy_cache/ .coverage htmlcov/
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+
+# Docker commands
+docker-build:
+	docker build -t alfredo-ai:latest .
+
+docker-run:
+	docker run -it --rm -v $(pwd)/data:/app/data alfredo-ai:latest
+
+# Development install
+install-dev: install
 	pip install -r requirements-dev.txt
-	pip install -e .
 	pre-commit install
 
 # Testing

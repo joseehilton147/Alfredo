@@ -11,14 +11,14 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 # Read requirements
 with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+    requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
 setup(
     name='alfredo-ai',
     version='1.0.0',
-    author='Josee Hilton',
-    author_email='josee@example.com',
-    description='AI-powered video transcription and summarization tool',
+    author='Jose Hilton',
+    author_email='joseehilton147@gmail.com',
+    description='AI-powered video transcription and analysis tool',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/joseehilton147/alfredo-ai',
@@ -27,44 +27,26 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Multimedia :: Video',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     python_requires='>=3.8',
     install_requires=requirements,
-    extras_require={
-        'dev': [
-            'pytest>=7.0.0',
-            'pytest-cov>=4.0.0',
-            'black>=22.0.0',
-            'flake8>=5.0.0',
-            'mypy>=1.0.0',
-            'pre-commit>=2.20.0',
-            'bandit>=1.7.0',
-        ],
-        'docs': [
-            'sphinx>=5.0.0',
-            'sphinx-rtd-theme>=1.0.0',
-        ],
-    },
     entry_points={
         'console_scripts': [
-            'alfredo=alfredo_ai.cli:main',
-            'alfredo-ai=alfredo_ai.cli:main',
+            'alfredo=src.main:main',
         ],
     },
-    include_package_data=True,
-    package_data={
-        'alfredo_ai': ['config/*.yaml', 'templates/*.txt'],
+    keywords='ai video transcription whisper',
+    project_urls={
+        'Bug Reports': 'https://github.com/joseehilton147/alfredo-ai/issues',
+        'Source': 'https://github.com/joseehilton147/alfredo-ai',
     },
-    zip_safe=False,
 )
