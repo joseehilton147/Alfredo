@@ -86,6 +86,8 @@ logs/
 *.swo
 *~
 .github/
+.kiro
+.ia
 
 # ==== SISTEMAS OPERACIONAIS ====
 # Windows
