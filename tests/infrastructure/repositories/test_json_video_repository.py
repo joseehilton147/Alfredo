@@ -60,15 +60,15 @@ class TestJsonVideoRepository:
         """Testa salvar e buscar vídeo."""
         # Salvar vídeo
         await repository.save(sample_video)
-        
+
         # Verificar se o diretório foi criado
         video_dir = repository.base_path / sample_video.id
         assert video_dir.exists()
-        
+
         # Verificar se o arquivo de metadados foi criado
         metadata_file = video_dir / "metadata.json"
         assert metadata_file.exists()
-        
+
         # Buscar vídeo
         found_video = await repository.find_by_id(sample_video.id)
         assert found_video is not None
@@ -86,7 +86,7 @@ class TestJsonVideoRepository:
             title="Test Video",
             created_at=None
         )
-        
+
         await repository.save(video)
         found_video = await repository.find_by_id(video.id)
         assert found_video is not None
@@ -96,12 +96,12 @@ class TestJsonVideoRepository:
         """Testa busca com arquivo JSON corrompido."""
         # Salvar vídeo primeiro
         await repository.save(sample_video)
-        
+
         # Corromper o arquivo JSON
         metadata_file = repository.base_path / sample_video.id / "metadata.json"
         with open(metadata_file, "w") as f:
             f.write("invalid json content")
-        
+
         # Tentar buscar vídeo
         result = await repository.find_by_id(sample_video.id)
         assert result is None
@@ -110,7 +110,7 @@ class TestJsonVideoRepository:
     async def test_save_error_handling(self, repository):
         """Testa tratamento de erro ao salvar."""
         video = Video(id="test", title="Test")
-        
+
         with patch('builtins.open', side_effect=OSError("Permission denied")):
             with pytest.raises(OSError):
                 await repository.save(video)
@@ -120,14 +120,14 @@ class TestJsonVideoRepository:
         """Testa remoção de vídeo existente."""
         # Salvar vídeo primeiro
         await repository.save(sample_video)
-        
+
         # Verificar que existe
         assert (repository.base_path / sample_video.id).exists()
-        
+
         # Remover vídeo
         result = await repository.delete(sample_video.id)
         assert result is True
-        
+
         # Verificar que foi removido
         assert not (repository.base_path / sample_video.id).exists()
 
@@ -142,7 +142,7 @@ class TestJsonVideoRepository:
         """Testa tratamento de erro ao remover."""
         # Salvar vídeo primeiro
         await repository.save(sample_video)
-        
+
         with patch('shutil.rmtree', side_effect=OSError("Permission denied")):
             result = await repository.delete(sample_video.id)
             assert result is False
@@ -160,15 +160,15 @@ class TestJsonVideoRepository:
         video1 = Video(id="video1", title="Video 1")
         video2 = Video(id="video2", title="Video 2")
         video3 = Video(id="video3", title="Video 3")
-        
+
         await repository.save(video1)
         await repository.save(video2)
         await repository.save(video3)
-        
+
         # Listar todos
         videos = await repository.list_all()
         assert len(videos) == 3
-        
+
         video_ids = [v.id for v in videos]
         assert "video1" in video_ids
         assert "video2" in video_ids
@@ -180,14 +180,14 @@ class TestJsonVideoRepository:
         # Criar vídeo válido
         video1 = Video(id="valid_video", title="Valid Video")
         await repository.save(video1)
-        
+
         # Criar diretório sem metadata.json
         invalid_dir = repository.base_path / "invalid_dir"
         invalid_dir.mkdir()
-        
+
         # Criar arquivo (não diretório)
         (repository.base_path / "not_a_dir.txt").touch()
-        
+
         videos = await repository.list_all()
         assert len(videos) == 1
         assert videos[0].id == "valid_video"
@@ -204,17 +204,17 @@ class TestJsonVideoRepository:
         """Testa busca com datetime inválido no JSON."""
         # Salvar vídeo primeiro
         await repository.save(sample_video)
-        
+
         # Modificar arquivo para ter datetime inválido
         metadata_file = repository.base_path / sample_video.id / "metadata.json"
         with open(metadata_file, "r") as f:
             data = json.load(f)
-        
+
         data["created_at"] = "invalid-datetime"
-        
+
         with open(metadata_file, "w") as f:
             json.dump(data, f)
-        
+
         # Buscar vídeo - deve retornar None devido ao erro
         result = await repository.find_by_id(sample_video.id)
         assert result is None

@@ -24,14 +24,14 @@ class TestWhisperProvider:
     async def test_transcribe_audio_success_first_time(self):
         """Testa transcrição de áudio com sucesso na primeira vez."""
         provider = WhisperProvider("small")
-        
+
         with patch('whisper.load_model') as mock_load_model:
             mock_model = MagicMock()
             mock_model.transcribe.return_value = {"text": "  Hello world  "}
             mock_load_model.return_value = mock_model
-            
+
             result = await provider.transcribe_audio("/path/to/audio.wav", "en")
-            
+
             assert result == "Hello world"
             mock_load_model.assert_called_once_with("small")
             mock_model.transcribe.assert_called_once_with(
@@ -44,14 +44,14 @@ class TestWhisperProvider:
     async def test_transcribe_audio_success_model_already_loaded(self):
         """Testa transcrição com modelo já carregado."""
         provider = WhisperProvider()
-        
+
         # Simular modelo já carregado
         mock_model = MagicMock()
         mock_model.transcribe.return_value = {"text": "Test transcription"}
         provider.model = mock_model
-        
+
         result = await provider.transcribe_audio("/path/to/audio.wav")
-        
+
         assert result == "Test transcription"
         mock_model.transcribe.assert_called_once_with(
             "/path/to/audio.wav",
@@ -63,15 +63,15 @@ class TestWhisperProvider:
     async def test_transcribe_audio_error(self):
         """Testa erro na transcrição."""
         provider = WhisperProvider()
-        
+
         with patch('whisper.load_model') as mock_load_model:
             mock_model = MagicMock()
             mock_model.transcribe.side_effect = Exception("Transcription error")
             mock_load_model.return_value = mock_model
-            
+
             with pytest.raises(RuntimeError) as exc_info:
                 await provider.transcribe_audio("/path/to/audio.wav")
-            
+
             assert "Falha ao transcrever áudio" in str(exc_info.value)
             assert "Transcription error" in str(exc_info.value)
 
@@ -79,13 +79,13 @@ class TestWhisperProvider:
     async def test_transcribe_audio_load_model_error(self):
         """Testa erro ao carregar modelo."""
         provider = WhisperProvider()
-        
+
         with patch('whisper.load_model') as mock_load_model:
             mock_load_model.side_effect = Exception("Model load error")
-            
+
             with pytest.raises(RuntimeError) as exc_info:
                 await provider.transcribe_audio("/path/to/audio.wav")
-            
+
             assert "Falha ao transcrever áudio" in str(exc_info.value)
             assert "Model load error" in str(exc_info.value)
 
@@ -93,7 +93,7 @@ class TestWhisperProvider:
         """Testa obtenção de idiomas suportados."""
         provider = WhisperProvider()
         languages = provider.get_supported_languages()
-        
+
         assert isinstance(languages, list)
         assert len(languages) > 0
         assert "pt" in languages

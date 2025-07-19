@@ -20,7 +20,7 @@ class TestConfig:
         assert isinstance(Config.OUTPUT_DIR, Path)
         assert isinstance(Config.LOGS_DIR, Path)
         assert isinstance(Config.TEMP_DIR, Path)
-        
+
         # Testar estrutura dos caminhos
         assert Config.DATA_DIR == Config.BASE_DIR / "data"
         assert Config.INPUT_DIR == Config.DATA_DIR / "input"
@@ -33,7 +33,7 @@ class TestConfig:
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             assert settings.Config.WHISPER_MODEL == "base"
             assert settings.Config.GROQ_MODEL == "llama3-70b-8192"
             assert settings.Config.DEFAULT_LANGUAGE == "pt"
@@ -52,12 +52,12 @@ class TestConfig:
             "LOG_LEVEL": "DEBUG",
             "GROQ_API_KEY": "test-api-key"
         }
-        
+
         with patch.dict(os.environ, env_vars, clear=True):
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             assert settings.Config.WHISPER_MODEL == "large"
             assert settings.Config.GROQ_MODEL == "custom-model"
             assert settings.Config.DEFAULT_LANGUAGE == "en"
@@ -77,7 +77,7 @@ class TestConfig:
         with patch.object(Config, 'GROQ_API_KEY', None):
             with pytest.raises(ValueError) as exc_info:
                 Config.validate()
-            
+
             assert "GROQ_API_KEY não configurada" in str(exc_info.value)
 
     def test_validate_with_empty_api_key(self):
@@ -85,7 +85,7 @@ class TestConfig:
         with patch.object(Config, 'GROQ_API_KEY', ''):
             with pytest.raises(ValueError) as exc_info:
                 Config.validate()
-            
+
             assert "GROQ_API_KEY não configurada" in str(exc_info.value)
 
     def test_create_directories(self):
@@ -97,9 +97,9 @@ class TestConfig:
                         with patch.object(Config, 'OUTPUT_DIR', Path(temp_dir) / "data" / "output"):
                             with patch.object(Config, 'LOGS_DIR', Path(temp_dir) / "data" / "logs"):
                                 with patch.object(Config, 'TEMP_DIR', Path(temp_dir) / "data" / "temp"):
-                                    
+
                                     Config.create_directories()
-                                    
+
                                     # Verificar que diretórios foram criados
                                     assert (Path(temp_dir) / "data" / "input" / "local").exists()
                                     assert (Path(temp_dir) / "data" / "input" / "youtube").exists()
@@ -137,7 +137,7 @@ class TestActiveConfig:
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             assert settings.ACTIVE_CONFIG == settings.DevelopmentConfig
 
     def test_development_environment(self):
@@ -146,7 +146,7 @@ class TestActiveConfig:
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             assert settings.ACTIVE_CONFIG == settings.DevelopmentConfig
 
     def test_production_environment(self):
@@ -155,7 +155,7 @@ class TestActiveConfig:
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             assert settings.ACTIVE_CONFIG == settings.ProductionConfig
 
     def test_unknown_environment(self):
@@ -164,6 +164,6 @@ class TestActiveConfig:
             from importlib import reload
             from src.config import settings
             reload(settings)
-            
+
             # Para ambiente desconhecido, retorna None
             assert settings.ACTIVE_CONFIG is None

@@ -12,6 +12,8 @@ class Video:
     duration: float = 0.0
     created_at: Optional[datetime] = None
     metadata: Optional[Dict[str, str]] = None
+    transcription: Optional[str] = None
+    source_url: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.created_at is None:

@@ -147,12 +147,12 @@ class TestDownloadYoutubeVideo:
         """Testa erro quando yt-dlp não está instalado."""
         import builtins
         real_import = builtins.__import__
-        
+
         def mock_import(name, *args, **kwargs):
             if name == 'yt_dlp':
                 raise ImportError("No module named 'yt_dlp'")
             return real_import(name, *args, **kwargs)
-        
+
         with patch('builtins.__import__', side_effect=mock_import):
             with pytest.raises(ImportError) as exc_info:
                 await download_youtube_video("https://youtube.com/watch?v=test")
@@ -270,7 +270,7 @@ class TestMain:
     async def test_main_with_all_options(self):
         """Testa execução com todas as opções."""
         test_args = [
-            "main.py", 
+            "main.py",
             "--input", "/test/path.mp4",
             "--language", "en",
             "--output", "/custom/output",
@@ -301,7 +301,7 @@ class TestDownloadYoutubeVideoExtended:
             mock_ydl.return_value.__enter__.return_value = mock_ydl_instance
 
             result = await download_youtube_video(
-                "https://youtube.com/watch?v=test", 
+                "https://youtube.com/watch?v=test",
                 output_dir="/custom/path"
             )
             assert result == "/custom/path/test_video.mp4"
