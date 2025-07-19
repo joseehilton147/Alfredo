@@ -160,6 +160,8 @@ tmp/
 .settings/
 *.sublime-project
 *.sublime-workspace
+.ia
+.kiro
 
 # OS
 .DS_Store
