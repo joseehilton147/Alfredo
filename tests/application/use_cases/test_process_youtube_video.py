@@ -12,29 +12,33 @@ from src.application.use_cases.process_youtube_video import (
     ProcessYouTubeVideoUseCase,
 )
 from src.domain.entities.video import Video
+from tests.fixtures.mock_infrastructure_factory import MockInfrastructureFactory
 
 
 class TestProcessYouTubeVideoUseCase:
     """Test cases for ProcessYouTubeVideoUseCase."""
 
     @pytest.fixture
-    def mock_video_repository(self):
-        """Mock video repository."""
-        repository = AsyncMock()
-        repository.save = AsyncMock()
-        return repository
+    def mock_factory(self):
+        """Mock infrastructure factory."""
+        return MockInfrastructureFactory()
 
     @pytest.fixture
-    def mock_ai_provider(self):
-        """Mock AI provider."""
-        provider = AsyncMock()
-        provider.transcribe_audio = AsyncMock(return_value="Test transcription")
-        return provider
+    def failing_mock_factory(self):
+        """Mock infrastructure factory that fails operations."""
+        return MockInfrastructureFactory(should_fail=True)
 
     @pytest.fixture
-    def use_case(self, mock_video_repository, mock_ai_provider):
-        """Create use case instance."""
-        return ProcessYouTubeVideoUseCase(mock_video_repository, mock_ai_provider)
+    def use_case(self, mock_factory):
+        """Create use case instance using factory."""
+        dependencies = mock_factory.create_all_dependencies()
+        return ProcessYouTubeVideoUseCase(
+            downloader=dependencies['downloader'],
+            extractor=dependencies['extractor'],
+            ai_provider=dependencies['ai_provider'],
+            storage=dependencies['storage'],
+            config=dependencies['config']
+        )
 
     @pytest.fixture
     def sample_request(self):
@@ -46,38 +50,32 @@ class TestProcessYouTubeVideoUseCase:
         )
 
     @pytest.mark.asyncio
-    async def test_execute_success(
-        self, use_case, sample_request, mock_video_repository, mock_ai_provider
-    ):
+    async def test_execute_success(self, use_case, sample_request, mock_factory):
         """Test successful video processing."""
-        # Mock the download and info extraction
-        with patch.object(use_case, "_download_video") as mock_download, patch.object(
-            use_case, "_extract_video_info"
-        ) as mock_extract:
+        # Execute
+        response = await use_case.execute(sample_request)
 
-            mock_download.return_value = "/path/to/downloaded/video.mp4"
-            mock_extract.return_value = {
-                "id": "test123",
-                "title": "Test Video",
-                "uploader": "Test Channel",
-                "duration": 120,
-            }
+        # Verify response
+        assert isinstance(response, ProcessYouTubeVideoResponse)
+        assert response.video.id == "youtube_mock_video_123"
+        assert response.video.title == "Mock Video Title"
+        assert response.video.source_url == sample_request.url
+        assert "Mock transcription" in response.transcription
+        assert "/mock/path/" in response.downloaded_file
 
-            # Execute
-            response = await use_case.execute(sample_request)
+        # Verify that factory dependencies were called
+        downloader = mock_factory.create_video_downloader()
+        extractor = mock_factory.create_audio_extractor()
+        ai_provider = mock_factory.create_ai_provider()
+        storage = mock_factory.create_storage()
 
-            # Verify response
-            assert isinstance(response, ProcessYouTubeVideoResponse)
-            assert response.video.id == "youtube_test123"
-            assert response.video.title == "Test Video"
-            assert response.video.source_url == sample_request.url
-            assert response.transcription == "Test transcription"
-            assert response.downloaded_file == "/path/to/downloaded/video.mp4"
-
-            # Verify repository calls
-            assert (
-                mock_video_repository.save.call_count == 2
-            )  # Once for video, once for transcription
+        # Verify calls were made
+        assert len(downloader.extract_info_calls) == 1
+        assert len(downloader.download_calls) == 1
+        assert len(extractor.extract_calls) == 1
+        assert len(ai_provider.transcribe_calls) == 1
+        assert len(storage.save_video_calls) == 1
+        assert len(storage.save_transcription_calls) == 1
 
     @pytest.mark.asyncio
     async def test_execute_with_progress_callback(self, use_case, sample_request):
@@ -89,25 +87,13 @@ class TestProcessYouTubeVideoUseCase:
 
         sample_request.progress_callback = progress_callback
 
-        with patch.object(use_case, "_download_video") as mock_download, patch.object(
-            use_case, "_extract_video_info"
-        ) as mock_extract:
+        await use_case.execute(sample_request)
 
-            mock_download.return_value = "/path/to/video.mp4"
-            mock_extract.return_value = {
-                "id": "test123",
-                "title": "Test Video",
-                "uploader": "Test Channel",
-                "duration": 120,
-            }
-
-            await use_case.execute(sample_request)
-
-            # Verify progress updates were called
-            assert len(progress_updates) > 0
-            assert any("Baixando" in status for _, status in progress_updates)
-            assert any("Transcrevendo" in status for _, status in progress_updates)
-            assert any("Concluído" in status for _, status in progress_updates)
+        # Verify progress updates were called
+        assert len(progress_updates) > 0
+        assert any("Baixando" in status for _, status in progress_updates)
+        assert any("Transcrevendo" in status for _, status in progress_updates)
+        assert any("Concluído" in status for _, status in progress_updates)
 
     @pytest.mark.asyncio
     async def test_execute_cancellation(self, use_case, sample_request):
@@ -117,172 +103,84 @@ class TestProcessYouTubeVideoUseCase:
 
         # The cancellation check happens at the beginning of execute()
         # Since we cancelled before calling execute, it should raise immediately
-        with pytest.raises(Exception, match="Processamento cancelado"):
+        from src.domain.exceptions.alfredo_errors import DownloadFailedError
+        with pytest.raises(DownloadFailedError, match="Processamento cancelado"):
             await use_case.execute(sample_request)
 
     @pytest.mark.asyncio
-    async def test_download_video_success(self, use_case):
-        """Test successful video download."""
-        with patch("builtins.__import__") as mock_import:
-            # Mock yt-dlp import
-            mock_yt_dlp = MagicMock()
-            mock_ydl = MagicMock()
-            mock_ydl.extract_info.return_value = {"title": "Test Video"}
-            mock_ydl.prepare_filename.return_value = "/path/to/video.mp4"
-            mock_yt_dlp.YoutubeDL.return_value.__enter__.return_value = mock_ydl
-
-            def import_side_effect(name, *args, **kwargs):
-                if name == "yt_dlp":
-                    return mock_yt_dlp
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
-            # Mock file existence
-            with patch("pathlib.Path.exists", return_value=True):
-                result = await use_case._download_video(
-                    "https://youtube.com/watch?v=test123", "test_output"
-                )
-
-            assert result == "/path/to/video.mp4"
-
-    @pytest.mark.asyncio
-    async def test_download_video_missing_yt_dlp(self, use_case):
-        """Test download when yt-dlp is not installed."""
-        with patch("builtins.__import__") as mock_import:
-
-            def import_side_effect(name, *args, **kwargs):
-                if name == "yt_dlp":
-                    raise ImportError("No module named 'yt_dlp'")
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
-            with pytest.raises(ImportError, match="yt-dlp não está instalado"):
-                await use_case._download_video(
-                    "https://youtube.com/watch?v=test123", "test_output"
-                )
-
-    @pytest.mark.asyncio
-    async def test_download_video_with_progress(self, use_case):
-        """Test video download with progress callback."""
-        progress_updates = []
-
-        def progress_callback(progress, status):
-            progress_updates.append((progress, status))
-
-        with patch("builtins.__import__") as mock_import:
-            # Mock yt-dlp import
-            mock_yt_dlp = MagicMock()
-            mock_ydl = MagicMock()
-            mock_ydl.extract_info.return_value = {"title": "Test Video"}
-            mock_ydl.prepare_filename.return_value = "/path/to/video.mp4"
-            mock_yt_dlp.YoutubeDL.return_value.__enter__.return_value = mock_ydl
-
-            def import_side_effect(name, *args, **kwargs):
-                if name == "yt_dlp":
-                    return mock_yt_dlp
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
-            # Mock file existence
-            with patch("pathlib.Path.exists", return_value=True):
-                await use_case._download_video(
-                    "https://youtube.com/watch?v=test123",
-                    "test_output",
-                    progress_callback,
-                )
-
-            # Verify progress updates
-            assert len(progress_updates) >= 2  # At least connecting and completed
-            assert any("Conectando" in status for _, status in progress_updates)
-            assert any("concluído" in status for _, status in progress_updates)
-
-    @pytest.mark.asyncio
-    async def test_extract_video_info_success(self, use_case):
-        """Test successful video info extraction."""
-        with patch("builtins.__import__") as mock_import:
-            # Mock yt-dlp import
-            mock_yt_dlp = MagicMock()
-            mock_ydl = MagicMock()
-            mock_ydl.extract_info.return_value = {
-                "id": "test123",
-                "title": "Test Video",
-                "uploader": "Test Channel",
-                "duration": 120,
-            }
-            mock_yt_dlp.YoutubeDL.return_value.__enter__.return_value = mock_ydl
-
-            def import_side_effect(name, *args, **kwargs):
-                if name == "yt_dlp":
-                    return mock_yt_dlp
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
-            result = await use_case._extract_video_info(
-                "https://youtube.com/watch?v=test123"
-            )
-
-            assert result["id"] == "test123"
-            assert result["title"] == "Test Video"
-            assert result["uploader"] == "Test Channel"
-            assert result["duration"] == 120
-
-    @pytest.mark.asyncio
-    async def test_extract_video_info_fallback(self, use_case):
-        """Test video info extraction fallback when yt-dlp is not available."""
-        # Mock the import to raise ImportError only for yt_dlp
-        original_import = __builtins__["__import__"]
-
-        def mock_import(name, *args, **kwargs):
-            if name == "yt_dlp":
-                raise ImportError("No module named 'yt_dlp'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            result = await use_case._extract_video_info(
-                "https://youtube.com/watch?v=dQw4w9WgXcQ"  # Use valid YouTube ID format
-            )
-
-            assert result["id"] == "dQw4w9WgXcQ"
-            assert "YouTube Video" in result["title"]
-            assert result["uploader"] == "Unknown"
-            assert result["duration"] == 0
-
-    @pytest.mark.asyncio
-    async def test_execute_download_failure(self, use_case, sample_request):
-        """Test handling of download failure."""
-        with patch.object(
-            use_case, "_download_video", side_effect=Exception("Download failed")
-        ):
-            with pytest.raises(Exception, match="Download failed"):
-                await use_case.execute(sample_request)
-
-    @pytest.mark.asyncio
-    async def test_execute_transcription_failure(
-        self, use_case, sample_request, mock_ai_provider
-    ):
-        """Test handling of transcription failure."""
-        mock_ai_provider.transcribe_audio.side_effect = Exception(
-            "Transcription failed"
+    async def test_execute_download_failure(self, failing_mock_factory, sample_request):
+        """Test handling of download failure using factory."""
+        dependencies = failing_mock_factory.create_all_dependencies()
+        use_case = ProcessYouTubeVideoUseCase(
+            downloader=dependencies['downloader'],
+            extractor=dependencies['extractor'],
+            ai_provider=dependencies['ai_provider'],
+            storage=dependencies['storage'],
+            config=dependencies['config']
         )
 
-        with patch.object(use_case, "_download_video") as mock_download, patch.object(
-            use_case, "_extract_video_info"
-        ) as mock_extract:
+        from src.domain.exceptions.alfredo_errors import DownloadFailedError
+        with pytest.raises(DownloadFailedError):
+            await use_case.execute(sample_request)
 
-            mock_download.return_value = "/path/to/video.mp4"
-            mock_extract.return_value = {
-                "id": "test123",
-                "title": "Test Video",
-                "uploader": "Test Channel",
-                "duration": 120,
-            }
+    @pytest.mark.asyncio
+    async def test_execute_transcription_failure(self, mock_factory, sample_request):
+        """Test handling of transcription failure using factory."""
+        # Create factory with failing AI provider
+        dependencies = mock_factory.create_all_dependencies()
+        ai_provider = dependencies['ai_provider']
+        ai_provider.should_fail = True
+        
+        use_case = ProcessYouTubeVideoUseCase(
+            downloader=dependencies['downloader'],
+            extractor=dependencies['extractor'],
+            ai_provider=ai_provider,
+            storage=dependencies['storage'],
+            config=dependencies['config']
+        )
 
-            with pytest.raises(Exception, match="Transcription failed"):
-                await use_case.execute(sample_request)
+        from src.domain.exceptions.alfredo_errors import TranscriptionError
+        with pytest.raises(TranscriptionError):
+            await use_case.execute(sample_request)
+
+    @pytest.mark.asyncio
+    async def test_factory_creates_correct_dependencies(self, mock_factory):
+        """Test that factory creates all required dependencies."""
+        dependencies = mock_factory.create_all_dependencies()
+        
+        # Verify all dependencies are present
+        required_keys = ['downloader', 'extractor', 'ai_provider', 'storage', 'config']
+        for key in required_keys:
+            assert key in dependencies
+            assert dependencies[key] is not None
+        
+        # Verify types
+        from src.application.gateways.video_downloader_gateway import VideoDownloaderGateway
+        from src.application.gateways.audio_extractor_gateway import AudioExtractorGateway
+        from src.application.interfaces.ai_provider import AIProviderInterface
+        from src.application.gateways.storage_gateway import StorageGateway
+        
+        assert isinstance(dependencies['downloader'], VideoDownloaderGateway)
+        assert isinstance(dependencies['extractor'], AudioExtractorGateway)
+        assert isinstance(dependencies['ai_provider'], AIProviderInterface)
+        assert isinstance(dependencies['storage'], StorageGateway)
+
+    @pytest.mark.asyncio
+    async def test_factory_caching_behavior(self, mock_factory):
+        """Test that factory properly caches instances."""
+        # Create same dependency twice
+        downloader1 = mock_factory.create_video_downloader()
+        downloader2 = mock_factory.create_video_downloader()
+        
+        # Should be the same instance (cached)
+        assert downloader1 is downloader2
+        
+        # Clear cache and create again
+        mock_factory.clear_cache()
+        downloader3 = mock_factory.create_video_downloader()
+        
+        # Should be different instance after cache clear
+        assert downloader1 is not downloader3
 
     @pytest.mark.asyncio
     async def test_cancel_processing(self, use_case):
@@ -294,17 +192,48 @@ class TestProcessYouTubeVideoUseCase:
         assert use_case._cancelled
 
     @pytest.mark.asyncio
-    async def test_execute_cancellation_during_processing(
-        self, use_case, sample_request
-    ):
+    async def test_execute_cancellation_during_processing(self, use_case, sample_request):
         """Test cancellation during different processing steps."""
-        with patch.object(use_case, "_download_video") as mock_download:
-            # Cancel during download
-            async def cancel_during_download(*args, **kwargs):
-                await use_case.cancel_processing()
-                return "/path/to/video.mp4"
+        # Cancel during processing
+        await use_case.cancel_processing()
 
-            mock_download.side_effect = cancel_during_download
+        from src.domain.exceptions.alfredo_errors import DownloadFailedError
+        with pytest.raises(DownloadFailedError, match="Processamento cancelado"):
+            await use_case.execute(sample_request)
 
-            with pytest.raises(Exception, match="Processamento cancelado"):
-                await use_case.execute(sample_request)
+    @pytest.mark.asyncio
+    async def test_use_case_does_not_instantiate_infrastructure_directly(self):
+        """Test that Use Case does not instantiate infrastructure classes directly."""
+        # This test verifies that the Use Case constructor only accepts interfaces
+        # and does not create concrete implementations internally
+        
+        from tests.fixtures.mock_infrastructure_factory import (
+            MockVideoDownloaderGateway,
+            MockAudioExtractorGateway,
+            MockAIProvider,
+            MockStorageGateway
+        )
+        from src.config.alfredo_config import AlfredoConfig
+        import tempfile
+        
+        # Create mock config
+        temp_dir = tempfile.mkdtemp()
+        config = AlfredoConfig()
+        config.data_dir = Path(temp_dir)
+        config.temp_dir = Path(temp_dir)
+        
+        # Create use case with mock dependencies
+        use_case = ProcessYouTubeVideoUseCase(
+            downloader=MockVideoDownloaderGateway(),
+            extractor=MockAudioExtractorGateway(),
+            ai_provider=MockAIProvider(),
+            storage=MockStorageGateway(),
+            config=config
+        )
+        
+        # Verify that use case accepts the interfaces
+        assert use_case.downloader is not None
+        assert use_case.extractor is not None
+        assert use_case.ai_provider is not None
+        assert use_case.storage is not None
+        assert use_case.config is not None

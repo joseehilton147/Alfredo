@@ -1,0 +1,78 @@
+[flake8]
+# Configuração do flake8 para Alfredo AI
+
+# Configurações básicas
+max-line-length = 88
+max-complexity = 10
+max-doc-length = 88
+
+# Diretórios a ignorar
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .tox,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    data/
+
+# Códigos de erro a ignorar
+ignore = 
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by black)
+    W503,  # line break before binary operator
+    W504,  # line break after binary operator
+    E231,  # missing whitespace after ','
+    F401,  # imported but unused (handled by isort)
+
+# Códigos de erro a selecionar especificamente
+select = 
+    E,     # pycodestyle errors
+    W,     # pycodestyle warnings
+    F,     # pyflakes
+    C,     # mccabe complexity
+    B,     # flake8-bugbear
+    I,     # flake8-import-order
+    D,     # flake8-docstrings
+
+# Configurações específicas para docstrings
+docstring-convention = google
+require-return-section-when-returning-nothing = false
+require-return-section-when-returning-none = false
+
+# Configurações para import order
+import-order-style = google
+application-import-names = src
+
+# Configurações por arquivo
+per-file-ignores =
+    # Testes podem ter imports não utilizados e asserts
+    tests/*:F401,F811,S101
+    # __init__.py podem ter imports não utilizados
+    __init__.py:F401
+    # Scripts de configuração podem ter imports não utilizados
+    setup.py:F401
+    # Arquivos de exemplo podem ter código não utilizado
+    examples/*:F401,F841
+
+# Configurações de complexidade
+max-cognitive-complexity = 12
+max-expression-complexity = 7
+max-function-length = 50
+max-parameters = 8
+max-returns = 6
+max-local-variables = 15
+max-branches = 12
+max-statements = 50
+
+# Configurações para nomes
+min-name-length = 2
+max-name-length = 50
+
+# Configurações para strings
+max-string-length = 100

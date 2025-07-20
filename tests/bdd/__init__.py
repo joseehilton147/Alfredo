@@ -1,0 +1,1 @@
+"""Testes BDD (Behavior-Driven Development) para Alfredo AI."""

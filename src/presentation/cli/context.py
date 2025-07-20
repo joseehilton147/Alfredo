@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Optional
 
 from src.application.use_cases.transcribe_audio import TranscribeAudioUseCase
-from src.infrastructure.providers.whisper_provider import WhisperProvider
-from src.infrastructure.repositories.json_video_repository import JsonVideoRepository
+from src.application.use_cases.process_youtube_video import ProcessYouTubeVideoUseCase
+from src.config.alfredo_config import AlfredoConfig
+from src.infrastructure.factories.infrastructure_factory import InfrastructureFactory
 
 
 class ApplicationContext:
@@ -14,23 +15,28 @@ class ApplicationContext:
 
     def __init__(self):
         """Initialize the application context with all dependencies."""
-        # Load settings from environment
+        # Load settings from environment and create config
         self.settings = self._load_settings()
-
-        # Initialize repositories
-        self.video_repository = JsonVideoRepository(
-            base_path=self.settings.get("OUTPUT_DIR", "data/output")
-        )
-
-        # Initialize providers
-        self.whisper_provider = WhisperProvider(
-            model_name=self.settings.get("WHISPER_MODEL", "base")
-        )
-
-        # Initialize use cases
+        self.config = self._create_config()
+        
+        # Initialize factory
+        self.factory = InfrastructureFactory(self.config)
+        
+        # Initialize use cases using factory
+        dependencies = self.factory.create_all_dependencies()
+        
         self.transcribe_use_case = TranscribeAudioUseCase(
-            video_repository=self.video_repository,
-            ai_provider=self.whisper_provider
+            ai_provider=dependencies['ai_provider'],
+            storage=dependencies['storage'],
+            config=dependencies['config']
+        )
+        
+        self.process_youtube_use_case = ProcessYouTubeVideoUseCase(
+            downloader=dependencies['downloader'],
+            extractor=dependencies['extractor'],
+            ai_provider=dependencies['ai_provider'],
+            storage=dependencies['storage'],
+            config=dependencies['config']
         )
 
     def _load_settings(self) -> dict:
@@ -64,6 +70,28 @@ class ApplicationContext:
         })
 
         return settings
+    
+    def _create_config(self) -> AlfredoConfig:
+        """Create AlfredoConfig from loaded settings.
+        
+        Returns:
+            Configured AlfredoConfig instance
+        """
+        # Create config with settings from environment
+        config = AlfredoConfig()
+        
+        # Override with loaded settings
+        if "WHISPER_MODEL" in self.settings:
+            config.whisper_model = self.settings["WHISPER_MODEL"]
+        if "DEFAULT_LANGUAGE" in self.settings:
+            config.default_language = self.settings["DEFAULT_LANGUAGE"]
+        if "OUTPUT_DIR" in self.settings:
+            config.data_dir = Path(self.settings["OUTPUT_DIR"]).parent
+        
+        # Ensure directories are created
+        config.create_directory_structure()
+        
+        return config
 
     def get_setting(self, key: str, default=None):
         """Get a setting value.
@@ -142,13 +170,14 @@ class ApplicationContext:
             Path(directory).mkdir(parents=True, exist_ok=True)
 
     def get_supported_languages(self) -> dict:
-        """Get supported languages from the whisper provider.
+        """Get supported languages from the AI provider.
 
         Returns:
             Dictionary mapping language codes to display names
         """
-        # Get supported languages from whisper provider
-        supported_codes = self.whisper_provider.get_supported_languages()
+        # Get AI provider from factory
+        ai_provider = self.factory.create_ai_provider()
+        supported_codes = ai_provider.get_supported_languages()
 
         # Map to display names
         language_names = {

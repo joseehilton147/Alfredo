@@ -263,6 +263,60 @@ curl -H "Authorization: Bearer sua_chave" https://api.groq.com/openai/v1/models
 docker run -v $(pwd)/data:/app/data --rm alfredo-ai ls /app/data
 ```
 
+## 🛠️ Comandos de Desenvolvimento
+
+Após a instalação, você pode usar os seguintes comandos para desenvolvimento:
+
+### Configuração e Instalação
+```bash
+make help               # Ver todos os comandos disponíveis
+make setup              # Configuração completa do projeto (recomendado)
+make install            # Instalar apenas dependências
+make install-dev        # Instalar dependências de desenvolvimento
+```
+
+### Testes
+```bash
+make test               # Executar todos os testes
+make test-unit          # Apenas testes unitários
+make test-integration   # Apenas testes de integração
+make test-bdd          # Apenas testes BDD
+make test-coverage     # Testes com cobertura detalhada
+```
+
+### Qualidade de Código
+```bash
+make quality-check      # Pipeline completo de qualidade
+make quality-report     # Relatório abrangente de qualidade
+make format            # Formatar código automaticamente
+make lint              # Verificar estilo e qualidade do código
+make complexity        # Análise de complexidade
+make security          # Análise de segurança
+make solid-check       # Verificação de princípios SOLID
+```
+
+### Análise de Cobertura
+```bash
+make coverage-analysis      # Análise detalhada de cobertura
+make coverage-analysis-quick # Análise rápida (dados existentes)
+make coverage-regression    # Verificação de regressão
+make quality-dashboard      # Dashboard local de qualidade
+```
+
+### Docker
+```bash
+make docker-build      # Build da imagem Docker
+make docker-run        # Executar com Docker
+make docker-up         # Iniciar com docker-compose
+```
+
+### Limpeza
+```bash
+make clean             # Limpeza básica
+make clean-all         # Limpeza completa
+make clean-quality     # Limpar artefatos de qualidade
+```
+
 ## 📞 Suporte
 
 Se continuar com problemas:

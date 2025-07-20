@@ -1,0 +1,1 @@
+"""Camada de Aplicação - Casos de uso e orquestração."""

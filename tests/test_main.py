@@ -7,10 +7,6 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from src.main import (
     setup_logging,
-    create_directories,
-    process_single_video,
-    process_batch,
-    download_youtube_video,
     main
 )
 

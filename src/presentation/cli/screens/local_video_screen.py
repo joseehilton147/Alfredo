@@ -413,7 +413,12 @@ class LocalVideoScreen(Screen):
 
             # Get application context and use case
             if not self.cli.app_context:
-                raise RuntimeError("Contexto da aplicação não disponível")
+                from src.domain.exceptions import ConfigurationError
+                raise ConfigurationError(
+                    "app_context", 
+                    "Contexto da aplicação não disponível",
+                    expected="aplicação inicializada corretamente"
+                )
 
             # Create video entity
             video_id = str(uuid.uuid4())
@@ -512,8 +517,25 @@ class LocalVideoScreen(Screen):
             with open(json_file, "w", encoding="utf-8") as f:
                 json.dump(result_data, f, indent=2, ensure_ascii=False)
 
+        except PermissionError as e:
+            from src.domain.exceptions import ConfigurationError
+            raise ConfigurationError(
+                "file_permissions",
+                f"Sem permissão para salvar em {output_dir}",
+                expected="permissões de escrita",
+                details={"output_dir": str(output_dir), "error": str(e)}
+            )
+        except OSError as e:
+            from src.domain.exceptions import ConfigurationError
+            raise ConfigurationError(
+                "storage_space",
+                f"Erro de sistema ao salvar resultado: {e}",
+                expected="espaço em disco suficiente",
+                details={"output_dir": str(output_dir), "error": str(e)}
+            )
         except Exception as e:
-            raise RuntimeError(f"Erro ao salvar resultado: {e}")
+            from src.domain.exceptions import AlfredoError
+            raise AlfredoError(f"Erro ao salvar resultado: {e}", cause=e)
 
     async def _show_success_message(self, transcription: str) -> None:
         """Show success message with transcription preview.

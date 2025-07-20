@@ -1,14 +1,21 @@
 """Use case for processing YouTube videos."""
 
-import asyncio
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Callable, Optional
 
 from src.application.interfaces.ai_provider import AIProviderInterface
+from src.application.gateways.video_downloader_gateway import VideoDownloaderGateway
+from src.application.gateways.audio_extractor_gateway import AudioExtractorGateway
+from src.application.gateways.storage_gateway import StorageGateway
+from src.config.alfredo_config import AlfredoConfig
 from src.domain.entities.video import Video
-from src.domain.repositories.video_repository import VideoRepository
+from src.domain.exceptions.alfredo_errors import (
+    DownloadFailedError, 
+    TranscriptionError, 
+    InvalidVideoFormatError,
+    ConfigurationError
+)
 
 
 @dataclass
@@ -34,16 +41,27 @@ class ProcessYouTubeVideoUseCase:
     """Use case for downloading and processing YouTube videos."""
 
     def __init__(
-        self, video_repository: VideoRepository, ai_provider: AIProviderInterface
+        self, 
+        downloader: VideoDownloaderGateway,
+        extractor: AudioExtractorGateway,
+        ai_provider: AIProviderInterface,
+        storage: StorageGateway,
+        config: AlfredoConfig
     ):
-        """Initialize the use case.
+        """Initialize the use case with injected dependencies.
 
         Args:
-            video_repository: Repository for video entities
+            downloader: Gateway for video downloading
+            extractor: Gateway for audio extraction
             ai_provider: AI provider for transcription
+            storage: Gateway for data storage
+            config: Application configuration
         """
-        self.video_repository = video_repository
+        self.downloader = downloader
+        self.extractor = extractor
         self.ai_provider = ai_provider
+        self.storage = storage
+        self.config = config
         self.logger = logging.getLogger(__name__)
         self._cancelled = False
 
@@ -59,63 +77,107 @@ class ProcessYouTubeVideoUseCase:
             Processing response with video and transcription
 
         Raises:
-            ImportError: If yt-dlp is not installed
-            ValueError: If URL is invalid or video cannot be processed
-            Exception: For other processing errors
+            DownloadFailedError: If video download fails
+            TranscriptionError: If audio transcription fails
+            InvalidVideoFormatError: If video format is invalid
+            ConfigurationError: If configuration is invalid
         """
         try:
-            # Step 1: Download video
+            # Step 1: Extract video info first
             if self._cancelled:
-                raise Exception("Processamento cancelado")
+                raise DownloadFailedError(request.url, "Processamento cancelado pelo usuário")
 
             if request.progress_callback:
-                request.progress_callback(10, "Baixando vídeo...")
+                request.progress_callback(5, "Extraindo informações do vídeo...")
 
-            downloaded_file = await self._download_video(
-                request.url, request.output_dir, request.progress_callback
-            )
-
-            # Step 2: Extract video info and create entity
-            if self._cancelled:
-                raise Exception("Processamento cancelado")
-
-            if request.progress_callback:
-                request.progress_callback(30, "Processando informações do vídeo...")
-
-            video_info = await self._extract_video_info(request.url)
+            video_info = await self.downloader.extract_info(request.url)
+            
+            # Step 2: Create video entity
             video = Video(
                 id=f"youtube_{video_info['id']}",
                 title=video_info["title"],
-                file_path=downloaded_file,
                 source_url=request.url,
+                duration=video_info.get("duration", 0),
+                metadata=video_info
             )
 
-            # Step 3: Save video to repository
-            if self._cancelled:
-                raise Exception("Processamento cancelado")
+            # Step 3: Check if already processed
+            existing_video = await self.storage.load_video(video.id)
+            if existing_video and not getattr(request, 'force_reprocess', False):
+                self.logger.info(f"Video already processed: {video.title}")
+                existing_transcription = await self.storage.load_transcription(video.id)
+                return ProcessYouTubeVideoResponse(
+                    video=existing_video,
+                    transcription=existing_transcription or "",
+                    downloaded_file=existing_video.file_path or ""
+                )
 
-            await self.video_repository.save(video)
-
-            # Step 4: Transcribe audio
+            # Step 4: Download video
             if self._cancelled:
-                raise Exception("Processamento cancelado")
+                raise DownloadFailedError(request.url, "Processamento cancelado pelo usuário")
 
             if request.progress_callback:
-                request.progress_callback(60, "Transcrevendo áudio...")
+                request.progress_callback(20, "Baixando vídeo...")
 
-            transcription = await self.ai_provider.transcribe_audio(
-                downloaded_file, request.language
+            downloaded_file = await self.downloader.download(
+                request.url, 
+                request.output_dir,
+                getattr(request, 'quality', 'best')
+            )
+            video.file_path = downloaded_file
+
+            # Step 5: Extract audio
+            if self._cancelled:
+                raise TranscriptionError(downloaded_file, "Processamento cancelado pelo usuário")
+
+            if request.progress_callback:
+                request.progress_callback(40, "Extraindo áudio...")
+
+            audio_path = str(self.config.temp_dir / f"{video.id}.wav")
+            await self.extractor.extract_audio(
+                downloaded_file,
+                audio_path,
+                format="wav",
+                sample_rate=self.config.audio_sample_rate
             )
 
-            # Step 5: Update video with transcription
+            # Step 6: Transcribe audio
             if self._cancelled:
-                raise Exception("Processamento cancelado")
+                raise TranscriptionError(audio_path, "Processamento cancelado pelo usuário")
+
+            if request.progress_callback:
+                request.progress_callback(70, "Transcrevendo áudio...")
+
+            transcription = await self.ai_provider.transcribe_audio(
+                audio_path, request.language
+            )
+
+            # Step 7: Save results
+            if self._cancelled:
+                raise TranscriptionError(audio_path, "Processamento cancelado pelo usuário")
 
             if request.progress_callback:
                 request.progress_callback(90, "Salvando resultados...")
 
             video.transcription = transcription
-            await self.video_repository.save(video)
+            await self.storage.save_video(video)
+            await self.storage.save_transcription(
+                video.id, 
+                transcription,
+                {
+                    "language": request.language,
+                    "provider": self.ai_provider.__class__.__name__,
+                    "audio_sample_rate": self.config.audio_sample_rate
+                }
+            )
+
+            # Step 8: Cleanup temporary files
+            try:
+                import os
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
+            except Exception as e:
+                self.logger.warning(f"Failed to cleanup temp file {audio_path}: {e}")
 
             if request.progress_callback:
                 request.progress_callback(100, "Concluído!")
@@ -128,127 +190,20 @@ class ProcessYouTubeVideoUseCase:
                 downloaded_file=downloaded_file,
             )
 
+        except (DownloadFailedError, TranscriptionError, InvalidVideoFormatError, ConfigurationError):
+            # Re-raise domain exceptions
+            raise
         except Exception as e:
             self.logger.error(f"Error processing YouTube video {request.url}: {str(e)}")
-            raise
-
-    async def _download_video(
-        self,
-        url: str,
-        output_dir: str,
-        progress_callback: Optional[Callable[[int, str], None]] = None,
-    ) -> str:
-        """Download video from YouTube.
-
-        Args:
-            url: YouTube URL
-            output_dir: Output directory for downloaded video
-
-        Returns:
-            Path to downloaded video file
-
-        Raises:
-            ImportError: If yt-dlp is not installed
-            Exception: If download fails
-        """
-        try:
-            import yt_dlp
-        except ImportError:
-            raise ImportError(
-                "yt-dlp não está instalado. Instale com: pip install yt-dlp"
+            # Convert unexpected errors to domain exceptions
+            raise ConfigurationError(
+                "unexpected_error",
+                f"Erro inesperado no processamento: {str(e)}",
+                expected="processamento bem-sucedido",
+                details={"url": request.url, "error": str(e)}
             )
 
-        # Ensure output directory exists
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-        # Progress hook for yt-dlp
-        def progress_hook(d):
-            if progress_callback and d["status"] == "downloading":
-                if "total_bytes" in d and d["total_bytes"]:
-                    percent = int(
-                        (d["downloaded_bytes"] / d["total_bytes"]) * 30
-                    )  # 30% of total progress
-                    progress_callback(10 + percent, f"Baixando: {percent + 10}%")
-                elif "_percent_str" in d:
-                    # Fallback to yt-dlp's percent string
-                    percent_str = d["_percent_str"].strip()
-                    progress_callback(20, f"Baixando: {percent_str}")
-
-        # Configure yt-dlp options
-        ydl_opts = {
-            "format": "best[ext=mp4]/best",
-            "outtmpl": str(Path(output_dir) / "%(title)s.%(ext)s"),
-            "quiet": True,
-            "no_warnings": True,
-            "progress_hooks": [progress_hook] if progress_callback else [],
-        }
-
-        def download():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
-                return filename
-
-        # Run download in thread to avoid blocking
-        loop = asyncio.get_event_loop()
-
-        if progress_callback:
-            progress_callback(12, "Conectando ao YouTube...")
-
-        filename = await loop.run_in_executor(None, download)
-
-        if progress_callback:
-            progress_callback(40, "Download concluído")
-
-        if not Path(filename).exists():
-            raise Exception("Falha no download do vídeo")
-
-        return filename
-
-    async def _extract_video_info(self, url: str) -> dict:
-        """Extract video information from YouTube URL.
-
-        Args:
-            url: YouTube URL
-
-        Returns:
-            Dictionary with video information
-        """
-        try:
-            import yt_dlp
-        except ImportError:
-            # Fallback to basic info extraction
-            from src.presentation.cli.components.input_field import YouTubeURLValidator
-
-            video_id = YouTubeURLValidator.extract_video_id(url)
-            return {
-                "id": video_id or "unknown",
-                "title": f"YouTube Video {video_id}",
-                "uploader": "Unknown",
-                "duration": 0,
-            }
-
-        # Configure yt-dlp to only extract info
-        ydl_opts = {
-            "quiet": True,
-            "no_warnings": True,
-            "extract_flat": False,
-        }
-
-        def extract_info():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(url, download=False)
-
-        # Run in thread to avoid blocking
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, extract_info)
-
-        return {
-            "id": info.get("id", "unknown"),
-            "title": info.get("title", "Unknown Title"),
-            "uploader": info.get("uploader", "Unknown"),
-            "duration": info.get("duration", 0),
-        }
 
     async def cancel_processing(self) -> None:
         """Cancel ongoing processing operation."""

@@ -1,213 +1,155 @@
 #!/usr/bin/env python3
 """
-Alfredo AI - Script principal de execução
-Ponto de entrada para processamento de vídeos com transcrição e análise
+Alfredo AI - Ponto de entrada principal
+Assistente de análise de vídeo com transcrição automática
 """
 
 import argparse
 import asyncio
 import logging
-import os
 import sys
 from pathlib import Path
 
 # Adicionar o diretório src ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.application.use_cases.transcribe_audio import (TranscribeAudioRequest,
-                                                        TranscribeAudioUseCase)
-from src.domain.entities.video import Video
-from src.infrastructure.providers.whisper_provider import WhisperProvider
-from src.infrastructure.repositories.json_video_repository import \
-    JsonVideoRepository
+from src.config.alfredo_config import AlfredoConfig
+from src.config.constants import (
+    APP_NAME, APP_DESCRIPTION, DEFAULT_LOG_FILE, DEFAULT_LOGS_DIR,
+    COMMAND_YOUTUBE, COMMAND_LOCAL, COMMAND_BATCH,
+    ARG_URL, ARG_FILE_PATH, ARG_DIRECTORY, ARG_LANGUAGE, ARG_LANGUAGE_SHORT,
+    ARG_QUALITY, ARG_FORCE, ARG_RECURSIVE, ARG_RECURSIVE_SHORT,
+    ARG_MAX_WORKERS, ARG_VERBOSE, ARG_VERBOSE_SHORT,
+    DEFAULT_LANGUAGE, DEFAULT_QUALITY, DEFAULT_MAX_WORKERS,
+    ERROR_PREFIX, ERROR_ALFREDO_PREFIX, ERROR_UNEXPECTED, ERROR_INTERRUPTED,
+    INFO_PREFIX, HELP_MESSAGE, HELP_SUGGESTION
+)
+from src.infrastructure.factories.infrastructure_factory import InfrastructureFactory
+from src.presentation.cli.command_registry import CommandRegistry
+from src.domain.exceptions.alfredo_errors import AlfredoError
 
 
-def setup_logging(verbose: bool = False) -> None:
+def setup_logging(config: AlfredoConfig, verbose: bool = False) -> None:
     """Configura o sistema de logging."""
-    level = logging.DEBUG if verbose else logging.INFO
+    level = logging.DEBUG if verbose else getattr(logging, config.log_level.upper())
+    
+    # Garantir que o diretório de logs existe
+    log_file = config.data_dir / DEFAULT_LOGS_DIR / DEFAULT_LOG_FILE
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    
     logging.basicConfig(
         level=level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format=config.log_format,
         handlers=[
-            logging.FileHandler("data/logs/alfredo.log"),
+            logging.FileHandler(log_file),
             logging.StreamHandler(sys.stdout),
         ],
     )
 
 
-def create_directories() -> None:
-    """Cria diretórios necessários se não existirem."""
-    directories = [
-        "data/input/local",
-        "data/input/youtube",
-        "data/output",
-        "data/logs",
-        "data/temp",
-    ]
-    for directory in directories:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-
-
-async def process_single_video(video_path: str, language: str = "pt") -> None:
-    """Processa um único vídeo."""
-    logger = logging.getLogger(__name__)
-
-    try:
-        # Criar entidade de vídeo
-        video = Video(
-            id=f"video_{Path(video_path).stem}",
-            title=Path(video_path).name,
-            file_path=video_path,
-        )
-
-        # Configurar repositório e provedor
-        video_repo = JsonVideoRepository()
-        whisper = WhisperProvider()
-        use_case = TranscribeAudioUseCase(video_repo, whisper)
-
-        # Salvar vídeo no repositório
-        await video_repo.save(video)
-
-        # Executar transcrição
-        request = TranscribeAudioRequest(
-            video_id=video.id,
-            audio_path=video_path,
-            language=language,
-        )
-
-        response = await use_case.execute(request)
-
-        logger.info(f"Transcrição concluída: {response.transcription[:100]}...")
-
-    except Exception as e:
-        logger.error(f"Erro ao processar vídeo {video_path}: {str(e)}")
-        raise
-
-
-async def process_batch(directory: str, language: str = "pt") -> None:
-    """Processa múltiplos vídeos em lote."""
-    logger = logging.getLogger(__name__)
-
-    video_dir = Path(directory)
-    if not video_dir.exists():
-        logger.error(f"Diretório não encontrado: {directory}")
-        return
-
-    # Extensões de vídeo suportadas
-    video_extensions = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"}
-
-    videos = [
-        str(f) for f in video_dir.iterdir() if f.suffix.lower() in video_extensions
-    ]
-
-    if not videos:
-        logger.warning("Nenhum vídeo encontrado no diretório")
-        return
-
-    logger.info(f"Encontrados {len(videos)} vídeos para processar")
-
-    for video_path in videos:
-        try:
-            await process_single_video(video_path, language)
-        except Exception as e:
-            logger.error(f"Erro ao processar {video_path}: {str(e)}")
-            continue
-
-
-async def download_youtube_video(
-    url: str, output_dir: str = "data/input/youtube"
-) -> str:
-    """Baixa vídeo do YouTube."""
-    try:
-        import yt_dlp
-
-        ydl_opts = {
-            "format": "best[ext=mp4]",
-            "outtmpl": str(Path(output_dir) / "%(title)s.%(ext)s"),
-            "quiet": True,
-        }
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            return filename
-
-    except ImportError:
-        raise ImportError("yt-dlp não está instalado. Instale com: pip install yt-dlp")
-
-
 async def main():
-    """Função principal."""
+    """Função principal - apenas parsing e delegação."""
     parser = argparse.ArgumentParser(
-        description="Alfredo AI - Assistente de análise de vídeo"
+        description=f"{APP_NAME} - {APP_DESCRIPTION}",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=HELP_MESSAGE
     )
 
-    parser.add_argument(
-        "--input", "-i", type=str, help="Caminho para o arquivo de vídeo local"
-    )
+    # Subcomandos
+    subparsers = parser.add_subparsers(dest='command', help='Comandos disponíveis')
 
-    parser.add_argument(
-        "--url", "-u", type=str, help="URL do YouTube para download e processamento"
-    )
+    # YouTube command
+    youtube_parser = subparsers.add_parser(COMMAND_YOUTUBE, help='Processar vídeo do YouTube')
+    youtube_parser.add_argument(ARG_URL, help='URL do vídeo do YouTube')
+    youtube_parser.add_argument(ARG_LANGUAGE, ARG_LANGUAGE_SHORT, default=DEFAULT_LANGUAGE, help=f'Idioma (padrão: {DEFAULT_LANGUAGE})')
+    youtube_parser.add_argument(ARG_QUALITY, default=DEFAULT_QUALITY, help='Qualidade do vídeo')
+    youtube_parser.add_argument(ARG_FORCE, action='store_true', help='Forçar reprocessamento')
 
-    parser.add_argument(
-        "--batch",
-        "-b",
-        type=str,
-        help="Diretório com vídeos para processamento em lote",
-    )
+    # Local video command
+    local_parser = subparsers.add_parser(COMMAND_LOCAL, help='Processar arquivo de vídeo local')
+    local_parser.add_argument(ARG_FILE_PATH, help='Caminho do arquivo de vídeo')
+    local_parser.add_argument(ARG_LANGUAGE, ARG_LANGUAGE_SHORT, default=DEFAULT_LANGUAGE, help=f'Idioma (padrão: {DEFAULT_LANGUAGE})')
+    local_parser.add_argument(ARG_FORCE, action='store_true', help='Forçar reprocessamento')
 
-    parser.add_argument(
-        "--language", "-l", type=str, default="pt", help="Idioma do vídeo (padrão: pt)"
-    )
+    # Batch command
+    batch_parser = subparsers.add_parser(COMMAND_BATCH, help='Processar múltiplos arquivos')
+    batch_parser.add_argument(ARG_DIRECTORY, help='Diretório com arquivos de vídeo')
+    batch_parser.add_argument(ARG_LANGUAGE, ARG_LANGUAGE_SHORT, default=DEFAULT_LANGUAGE, help=f'Idioma (padrão: {DEFAULT_LANGUAGE})')
+    batch_parser.add_argument(ARG_RECURSIVE, ARG_RECURSIVE_SHORT, action='store_true', help='Busca recursiva')
+    batch_parser.add_argument(ARG_MAX_WORKERS, type=int, default=DEFAULT_MAX_WORKERS, help='Workers paralelos')
+    batch_parser.add_argument(ARG_FORCE, action='store_true', help='Forçar reprocessamento')
 
-    parser.add_argument(
-        "--output",
-        "-o",
-        type=str,
-        default="data/output",
-        help="Diretório de saída para os resultados",
-    )
-
-    parser.add_argument(
-        "--detect-scenes", action="store_true", help="Ativar detecção de cenas"
-    )
-
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Ativar modo verbose"
-    )
+    # Argumentos globais
+    parser.add_argument(ARG_VERBOSE, ARG_VERBOSE_SHORT, action='store_true', help='Modo verbose')
 
     args = parser.parse_args()
 
-    # Configurar
-    setup_logging(args.verbose)
-    create_directories()
+    # Configurar sistema
+    config = AlfredoConfig()
+    config.validate_runtime()
+    config.create_directory_structure()
+    setup_logging(config, args.verbose)
 
-    logger = logging.getLogger(__name__)
-    logger.info("🚀 Iniciando Alfredo AI...")
+    # Criar factory e registry
+    factory = InfrastructureFactory(config)
+    registry = CommandRegistry(config, factory)
 
     try:
-        if args.url:
-            logger.info(f"📥 Baixando vídeo do YouTube: {args.url}")
-            video_path = await download_youtube_video(args.url)
-            await process_single_video(video_path, args.language)
-
-        elif args.batch:
-            logger.info(f"📁 Processando vídeos em lote: {args.batch}")
-            await process_batch(args.batch, args.language)
-
-        elif args.input:
-            logger.info(f"🎬 Processando vídeo: {args.input}")
-            await process_single_video(args.input, args.language)
-
-        else:
+        if not args.command:
             parser.print_help()
-            logger.error("Nenhuma opção de entrada fornecida")
+            return
+
+        # Obter e executar comando
+        command = registry.get_command(args.command)
+
+        if args.command == COMMAND_YOUTUBE:
+            await command.execute(
+                url=args.url,
+                language=args.language,
+                quality=args.quality,
+                force_reprocess=args.force
+            )
+        elif args.command == COMMAND_LOCAL:
+            await command.execute(
+                file_path=args.file_path,
+                language=args.language,
+                force_reprocess=args.force
+            )
+        elif args.command == COMMAND_BATCH:
+            await command.execute(
+                directory=args.directory,
+                language=args.language,
+                recursive=args.recursive,
+                max_workers=args.max_workers,
+                force_reprocess=args.force
+            )
 
     except KeyboardInterrupt:
-        logger.info("Processamento interrompido pelo usuário")
+        print(ERROR_INTERRUPTED)
+    except ValueError as e:
+        # Erro de comando não encontrado
+        print(f"{ERROR_PREFIX}{e}")
+        print(HELP_SUGGESTION)
+        sys.exit(1)
+    except AlfredoError as e:
+        # Erros específicos do domínio já são tratados pelos comandos
+        # mas podem escapar em casos raros
+        print(f"{ERROR_ALFREDO_PREFIX}{e.message}")
+        if hasattr(e, 'details') and e.details:
+            logging.getLogger(__name__).debug(f"Detalhes do erro: {e.details}")
+        sys.exit(1)
     except Exception as e:
-        logger.error(f"Erro durante o processamento: {str(e)}")
+        # Erros inesperados - logar detalhes técnicos mas exibir mensagem amigável
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro inesperado no main: {e}", exc_info=True)
+        
+        print(ERROR_UNEXPECTED)
+        print(f"{INFO_PREFIX}Verifique os logs para mais detalhes técnicos")
+        print(f"   Log: {config.data_dir / DEFAULT_LOGS_DIR / DEFAULT_LOG_FILE}")
+        
+        if args.verbose:
+            print(f"\nDetalhes técnicos: {e}")
+        
         sys.exit(1)
 
 

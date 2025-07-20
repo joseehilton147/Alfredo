@@ -1,6 +1,8 @@
-"""Interactive CLI module for Alfredo AI."""
+"""
+Interface de linha de comando (CLI) do Alfredo AI.
 
-from .interactive_cli import InteractiveCLI
-from .state import CLIState, ProcessingTask
-
-__all__ = ['InteractiveCLI', 'CLIState', 'ProcessingTask']
+Contém os comandos específicos para diferentes tipos de processamento:
+- YouTubeCommand: Processamento de URLs do YouTube
+- LocalVideoCommand: Processamento de arquivos locais
+- BatchCommand: Processamento em lote
+"""

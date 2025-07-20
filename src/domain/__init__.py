@@ -1,0 +1,1 @@
+"""Camada de Domínio - Entidades e regras de negócio centrais."""

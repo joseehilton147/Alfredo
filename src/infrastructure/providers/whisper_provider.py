@@ -5,18 +5,23 @@ from typing import Optional
 
 import whisper
 
+from src.application.interfaces.ai_provider import AIProviderInterface
+from src.config.alfredo_config import AlfredoConfig
+from src.domain.exceptions.alfredo_errors import TranscriptionError, ProviderUnavailableError
 
-class WhisperProvider:
+
+class WhisperProvider(AIProviderInterface):
     """Provedor de transcrição usando OpenAI Whisper."""
 
-    def __init__(self, model_name: str = "base"):
+    def __init__(self, config: Optional[AlfredoConfig] = None):
         """Inicializa o provedor Whisper.
 
         Args:
-            model_name: Nome do modelo Whisper a usar
+            config: Configuração do Alfredo (opcional, usa padrão se não fornecida)
         """
         self.logger = logging.getLogger(__name__)
-        self.model_name = model_name
+        self.config = config or AlfredoConfig()
+        self.model_name = self.config.whisper_model
         self.model = None
 
     async def transcribe_audio(
@@ -46,9 +51,30 @@ class WhisperProvider:
 
             return transcription
 
+        except FileNotFoundError as e:
+            self.logger.error(f"Arquivo de áudio não encontrado: {str(e)}")
+            raise TranscriptionError(
+                audio_path, 
+                f"Arquivo não encontrado: {str(e)}", 
+                provider="whisper",
+                details={"model": self.model_name}
+            )
         except Exception as e:
             self.logger.error(f"Erro na transcrição: {str(e)}")
-            raise RuntimeError(f"Falha ao transcrever áudio: {str(e)}")
+            # Check if it's a model loading error
+            if "model" in str(e).lower() or "load" in str(e).lower():
+                raise ProviderUnavailableError(
+                    "whisper",
+                    f"Erro ao carregar modelo {self.model_name}: {str(e)}",
+                    details={"model": self.model_name, "audio_path": audio_path}
+                )
+            else:
+                raise TranscriptionError(
+                    audio_path, 
+                    f"Falha na transcrição: {str(e)}", 
+                    provider="whisper",
+                    details={"model": self.model_name}
+                )
 
     def get_supported_languages(self) -> list[str]:
         """Retorna lista de idiomas suportados."""

@@ -1,0 +1,1 @@
+"""Implementações de extração de áudio."""

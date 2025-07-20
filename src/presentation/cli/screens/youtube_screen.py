@@ -408,29 +408,18 @@ class YouTubeScreen(Screen):
         await self.render()
 
     async def _fetch_video_info(self, url: str) -> None:
-        """Fetch video information using yt-dlp.
+        """Fetch video information using the application layer.
 
         Args:
             url: YouTube URL
         """
         try:
-            import yt_dlp
-
-            # Configure yt-dlp to only extract info
-            ydl_opts = {
-                "quiet": True,
-                "no_warnings": True,
-                "extract_flat": False,
-            }
-
-            # Run in thread to avoid blocking
-            def extract_info():
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    return ydl.extract_info(url, download=False)
-
-            # Execute in thread pool
-            loop = asyncio.get_event_loop()
-            info = await loop.run_in_executor(None, extract_info)
+            # Get application context from CLI
+            app_context = self.cli.app_context
+            
+            # Use the video downloader gateway to extract info
+            downloader = app_context.factory.create_video_downloader()
+            info = await downloader.extract_info(url)
 
             # Extract relevant information
             self.video_info = {
@@ -442,19 +431,17 @@ class YouTubeScreen(Screen):
                 "id": info.get("id", ""),
             }
 
-        except ImportError:
-            # yt-dlp not available, create mock info
+        except Exception as e:
+            # Fallback to basic info if extraction fails
             video_id = YouTubeURLValidator.extract_video_id(url)
             self.video_info = {
                 "title": f"Vídeo do YouTube (ID: {video_id})",
-                "uploader": "Canal não disponível (yt-dlp não instalado)",
+                "uploader": "Canal não disponível",
                 "duration": 0,
                 "height": "N/A",
                 "url": url,
                 "id": video_id,
             }
-        except Exception as e:
-            raise Exception(f"Erro ao acessar vídeo: {str(e)}")
 
     async def _start_processing(self) -> None:
         """Start video processing."""

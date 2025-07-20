@@ -2,6 +2,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional
 
+from ..validators.video_validators import (
+    validate_video_id,
+    validate_video_title,
+    validate_video_duration,
+    validate_video_sources,
+)
+
 
 @dataclass
 class Video:
@@ -20,6 +27,28 @@ class Video:
             self.created_at = datetime.now()
         if self.metadata is None:
             self.metadata = {}
+        
+        # Executar validações robustas
+        self._validate_id()
+        self._validate_title()
+        self._validate_sources()
+        self._validate_duration()
+
+    def _validate_id(self) -> None:
+        """Valida o ID do vídeo usando validador específico."""
+        validate_video_id(self.id)
+
+    def _validate_title(self) -> None:
+        """Valida o título do vídeo usando validador específico."""
+        validate_video_title(self.title)
+
+    def _validate_sources(self) -> None:
+        """Valida as fontes do vídeo (file_path e URL) usando validador específico."""
+        validate_video_sources(self.file_path, self.url)
+
+    def _validate_duration(self) -> None:
+        """Valida a duração do vídeo usando validador específico."""
+        validate_video_duration(self.duration)
 
     def is_local(self) -> bool:
         return self.file_path is not None

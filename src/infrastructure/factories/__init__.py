@@ -1,0 +1,1 @@
+"""Factories para criação de dependências de infraestrutura."""

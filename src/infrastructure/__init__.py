@@ -1,0 +1,1 @@
+"""Camada de Infraestrutura - Implementações concretas e dependências externas."""

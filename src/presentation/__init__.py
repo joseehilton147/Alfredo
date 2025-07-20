@@ -1,5 +1,9 @@
-"""Presentation layer for Alfredo AI."""
+"""
+Camada de Apresentação do Alfredo AI.
 
-from . import cli
-
-__all__ = ['cli']
+Esta camada é responsável pela interface com o usuário, incluindo:
+- Comandos CLI
+- Parsing de argumentos
+- Exibição de resultados
+- Tratamento de erros para o usuário final
+"""

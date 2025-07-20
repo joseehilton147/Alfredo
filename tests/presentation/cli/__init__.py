@@ -1,1 +1,1 @@
-"""Tests for CLI presentation layer."""
+"""Testes dos comandos CLI."""

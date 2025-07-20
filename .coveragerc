@@ -1,0 +1,119 @@
+# Configuração de cobertura de testes para Alfredo AI
+
+[run]
+# Diretório fonte
+source = src
+
+# Arquivos a omitir da cobertura
+omit = 
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */venv/*
+    */.venv/*
+    */build/*
+    */dist/*
+    */setup.py
+    */conftest.py
+    */.tox/*
+    */migrations/*
+    */scripts/*
+
+# Incluir análise de branches
+branch = True
+
+# Executar em paralelo
+parallel = True
+
+# Arquivo de dados de cobertura
+data_file = .coverage
+
+# Plugins
+# plugins = 
+#     coverage_conditional_plugin
+
+[report]
+# Linhas a excluir do relatório
+exclude_lines =
+    # Pragmas padrão
+    pragma: no cover
+    
+    # Não cobrir métodos de debug/repr
+    def __repr__
+    def __str__
+    
+    # Não cobrir condições de debug
+    if self.debug:
+    if settings.DEBUG
+    
+    # Não cobrir assertions e NotImplementedError
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Não cobrir código de desenvolvimento
+    if 0:
+    if False:
+    if __name__ == .__main__.:
+    
+    # Não cobrir protocolos abstratos
+    class .*\\bProtocol\\b.*:
+    @(abc\\.)?abstractmethod
+    
+    # Não cobrir type checking
+    if TYPE_CHECKING:
+    
+    # Não cobrir imports condicionais
+    except ImportError:
+    
+    # Não cobrir logging de debug
+    logger\\.debug
+    
+    # Não cobrir código de fallback
+    except.*:
+        pass
+
+# Ignorar erros de cobertura
+ignore_errors = True
+
+# Mostrar linhas não cobertas
+show_missing = True
+
+# Precisão decimal
+precision = 2
+
+# Pular arquivos totalmente cobertos
+skip_covered = False
+
+# Pular arquivos vazios
+skip_empty = False
+
+# Ordenar por nome
+sort = Name
+
+[html]
+# Diretório para relatório HTML
+directory = data/output/coverage
+
+# Título do relatório
+title = Alfredo AI - Coverage Report
+
+# Mostrar contextos
+show_contexts = True
+
+[xml]
+# Arquivo de saída XML
+output = data/output/coverage.xml
+
+[json]
+# Arquivo de saída JSON
+output = data/output/coverage.json
+# Mostrar contextos no JSON
+show_contexts = True
+
+[paths]
+# Mapeamento de caminhos para diferentes ambientes
+source =
+    src/
+    */site-packages/src/
+    */lib/python*/site-packages/src/
+    */Lib/site-packages/src/

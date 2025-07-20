@@ -1,0 +1,1 @@
+"""Testes de segurança para Alfredo AI."""

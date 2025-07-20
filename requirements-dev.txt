@@ -5,6 +5,7 @@ pytest>=7.0.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.0.0
 pytest-mock>=3.10.0
+pytest-bdd>=7.0.0
 
 # Qualidade de código
 black>=23.0.0
@@ -22,8 +23,26 @@ tox>=4.0.0
 
 # Debugging
 ipdb>=0.13.0
-pdb++>=0.10.0
+pdbpp>=0.10.0
 
 # Análise de código
 bandit>=1.7.0
 safety>=2.0.0
+pylint>=3.0.0
+radon>=6.0.0
+vulture>=2.7
+xenon>=0.9.0
+mccabe>=0.7.0
+
+# Extensões do flake8
+flake8-complexity>=0.0.8
+flake8-docstrings>=1.7.0
+flake8-import-order>=0.18.2
+flake8-bugbear>=23.0.0
+flake8-cognitive-complexity>=0.1.0
+flake8-expression-complexity>=0.0.11
+flake8-functions>=0.0.7
+flake8-variables-names>=0.0.5
+
+# Ferramentas de duplicação de código
+jscpd>=0.0.7
