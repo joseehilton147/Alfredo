@@ -1,181 +1,217 @@
 # Testes do Alfredo AI
 
-Este diretório contém a suíte completa de testes para o projeto Alfredo AI, implementando uma estratégia abrangente de testes BDD/TDD.
+Este diretório contém todos os testes do projeto Alfredo AI, organizados seguindo a Clean Architecture.
 
-## Estrutura de Testes
+## Estrutura Organizada por Camadas
 
-### 📁 tests/bdd/
-Testes comportamentais (Behavior-Driven Development) usando pytest-bdd:
-- **features/**: Arquivos .feature em formato Gherkin
-- **step_defs/**: Definições de steps para os cenários BDD
-- **conftest.py**: Configurações e fixtures específicas para BDD
+### Testes Unitários (`unit/`)
 
-#### Cenários Implementados:
-- `youtube_processing.feature`: Processamento de vídeos do YouTube
-- `domain_validation.feature`: Validação de entidades de domínio
+Testes isolados para cada componente, organizados por camada:
 
-### 📁 tests/unit/
-Testes unitários organizados por camada da arquitetura:
-- **domain/**: Testes para entidades, validadores e exceções
-- **application/**: Testes para use cases e interfaces
-- **config/**: Testes para configurações
-- **infrastructure/**: Testes para factories e implementações
+- `unit/domain/` - Testes para entidades, validadores e exceções
+  - `entities/` - Testes para entidades de domínio (Video, etc.)
+  - `validators/` - Testes para validadores de domínio
+  - `exceptions/` - Testes para exceções customizadas
+- `unit/application/` - Testes para casos de uso e gateways
+  - `use_cases/` - Testes para casos de uso isolados
+  - `gateways/` - Testes para interfaces de gateway
+- `unit/infrastructure/` - Testes para implementações de infraestrutura
+  - `providers/` - Testes para provedores de IA
+  - `downloaders/` - Testes para downloaders
+  - `extractors/` - Testes para extractors de áudio
+  - `storage/` - Testes para storage
+  - `repositories/` - Testes para repositórios
+  - `factories/` - Testes para factories
+- `unit/config/` - Testes para configurações
+- `unit/presentation/` - Testes para camada de apresentação
+  - `cli/` - Testes para interface CLI
 
-### 📁 tests/integration/
-Testes de integração end-to-end:
-- Fluxos completos de processamento
-- Integração entre camadas
-- Testes de resiliência de rede
-- Processamento concorrente
+### Testes de Integração (`integration/`)
 
-### 📁 tests/performance/
-Testes de performance e benchmarks:
-- Validação de performance
-- Testes de concorrência
-- Monitoramento de memória
-- Benchmarks de escalabilidade
+Testes que verificam integração entre componentes:
 
-### 📁 tests/security/
-Testes de segurança básicos:
-- Validação de inputs maliciosos
-- Proteção contra SQL injection, XSS, path traversal
-- Segurança de URLs e sistema de arquivos
-- Proteção de dados sensíveis em logs
+- `integration/use_cases/` - Testes de casos de uso com dependências reais
+- `integration/gateways/` - Testes de contratos de gateways
+- `integration/end_to_end/` - Testes de fluxos completos controlados
+
+### Testes End-to-End (`e2e/`)
+
+Testes de fluxos completos do usuário:
+
+- `e2e/youtube_flow/` - Testes completos do fluxo YouTube
+- `e2e/local_video_flow/` - Testes completos do fluxo de vídeo local
+- `e2e/error_scenarios/` - Testes de cenários de erro
+
+### Outros Tipos de Teste
+
+- `bdd/` - Testes BDD (Behavior-Driven Development)
+- `performance/` - Testes de performance e benchmarks
+- `security/` - Testes de segurança e validação de entrada
+
+### Fixtures e Utilitários
+
+- `fixtures/` - Fixtures reutilizáveis e dados de teste
+  - `base_fixtures.py` - Fixtures base para todos os testes
+  - `mock_dependencies.py` - Mocks para dependências externas
+  - `test_config.py` - Configurações específicas para testes
+- `shared/` - Utilitários compartilhados entre testes
+  - `test_utils.py` - Helpers e utilitários para testes
 
 ## Executando os Testes
 
-### Todos os Testes
+### Comandos Básicos
+
 ```bash
-python -m pytest
+# Todos os testes
+pytest
+
+# Testes por tipo
+pytest tests/unit/           # Testes unitários
+pytest tests/integration/    # Testes de integração
+pytest tests/e2e/           # Testes end-to-end
+
+# Testes por camada
+pytest tests/unit/domain/           # Testes de domínio
+pytest tests/unit/application/      # Testes de aplicação
+pytest tests/unit/infrastructure/   # Testes de infraestrutura
+
+# Com cobertura
+pytest --cov=src --cov-report=html
+pytest --cov=src --cov-report=term-missing
 ```
 
-### Por Categoria
+### Comandos por Marker
+
 ```bash
-# Testes unitários
-python -m pytest tests/unit/ -v
-
-# Testes BDD
-python -m pytest tests/bdd/ -v
-
-# Testes de integração
-python -m pytest tests/integration/ -v -m integration
-
-# Testes de performance
-python -m pytest tests/performance/ -v -m performance
-
-# Testes de segurança
-python -m pytest tests/security/ -v -m security
+pytest -m unit          # Apenas testes unitários
+pytest -m integration   # Apenas testes de integração
+pytest -m e2e          # Apenas testes end-to-end
+pytest -m performance  # Apenas testes de performance
+pytest -m security     # Apenas testes de segurança
+pytest -m slow         # Apenas testes lentos
 ```
 
-### Com Cobertura
+### Comandos Avançados
+
 ```bash
-python -m pytest --cov=src --cov-report=html --cov-report=term-missing
+# Executar em paralelo (se pytest-xdist instalado)
+pytest -n auto
+
+# Executar com timeout
+pytest --timeout=300
+
+# Executar apenas testes que falharam na última execução
+pytest --lf
+
+# Executar com verbose
+pytest -v
+
+# Executar com debug
+pytest -s --pdb
 ```
 
-## Marcadores (Markers)
+## Configuração de Testes
 
-Os testes são organizados com marcadores para execução seletiva:
-- `@pytest.mark.bdd`: Testes BDD
-- `@pytest.mark.unit`: Testes unitários
-- `@pytest.mark.integration`: Testes de integração
-- `@pytest.mark.performance`: Testes de performance
-- `@pytest.mark.security`: Testes de segurança
+### Configuração Principal
 
-## Fixtures Principais
+- `conftest.py` - Configuração global e fixtures principais
+- `pytest.ini` - Configuração do pytest
+- `pyproject.toml` - Configuração de cobertura e ferramentas
 
-### BDD Fixtures
-- `mock_config`: Configuração mock para testes
-- `mock_infrastructure_factory`: Factory mock completa
-- `bdd_context`: Contexto compartilhado entre steps
-- `sample_video_data`: Dados de exemplo para testes
+### Fixtures Disponíveis
 
-### Performance Fixtures
-- `performance_config`: Configuração otimizada para performance
-- `PerformanceTimer`: Medição de tempo de execução
-- `MemoryProfiler`: Monitoramento de uso de memória
+#### Fixtures Base
 
-### Security Fixtures
-- Configurações temporárias isoladas
-- Mocks para componentes externos
-- Captura de logs para análise de segurança
+- `temp_dir` - Diretório temporário para testes
+- `mock_config` - Configuração mock
+- `sample_video` - Vídeo de exemplo
+- `sample_youtube_video` - Vídeo do YouTube de exemplo
 
-## Estratégia de Testes
+#### Mocks de Dependências
 
-### 1. Test-Driven Development (TDD)
-- Testes escritos antes da implementação
-- Ciclo Red-Green-Refactor
-- Cobertura mínima de 80%
+- `mock_video_downloader` - Mock para downloader
+- `mock_audio_extractor` - Mock para extractor
+- `mock_ai_provider` - Mock para provedor de IA
+- `mock_storage` - Mock para storage
+- `mock_infrastructure_factory` - Factory mock completa
 
-### 2. Behavior-Driven Development (BDD)
-- Cenários em linguagem natural (Gherkin)
-- Testes como documentação viva
-- Validação de comportamento end-to-end
+#### Configurações de Teste
 
-### 3. Testes de Integração
-- Validação de fluxos completos
-- Integração entre camadas
-- Testes de resiliência
+- `unit_test_config` - Configuração para testes unitários
+- `integration_test_config` - Configuração para testes de integração
+- `e2e_test_config` - Configuração para testes E2E
 
-### 4. Testes de Performance
-- Benchmarks de operações críticas
-- Monitoramento de recursos
-- Testes de escalabilidade
+## Boas Práticas
 
-### 5. Testes de Segurança
-- Validação contra ataques comuns
-- Proteção de dados sensíveis
-- Sanitização de inputs
+### Organização de Testes
 
-## Configuração do pytest
+1. **Espelhar estrutura do código**: Testes devem seguir a mesma estrutura do código fonte
+2. **Um arquivo de teste por módulo**: `test_video.py` para `video.py`
+3. **Classes de teste por funcionalidade**: Agrupar testes relacionados
+4. **Nomes descritivos**: `test_create_video_with_valid_data`
 
-O arquivo `pytest.ini` contém as configurações:
-- Diretórios de teste
-- Marcadores personalizados
-- Configurações de cobertura
-- Configurações BDD
+### Escrita de Testes
 
-## Dependências de Teste
+1. **Arrange-Act-Assert**: Organizar testes em três seções claras
+2. **Testes isolados**: Cada teste deve ser independente
+3. **Mocks apropriados**: Usar mocks para dependências externas
+4. **Assertions específicas**: Verificar comportamentos específicos
 
-Principais dependências para execução dos testes:
-- `pytest`: Framework de testes
-- `pytest-asyncio`: Suporte a testes assíncronos
-- `pytest-cov`: Cobertura de código
-- `pytest-mock`: Mocking
-- `pytest-bdd`: Testes BDD
-- `psutil`: Monitoramento de sistema (performance)
+### Performance
 
-## Relatórios
+1. **Testes rápidos**: Testes unitários devem ser muito rápidos (< 1s)
+2. **Fixtures reutilizáveis**: Evitar duplicação de setup
+3. **Cleanup automático**: Limpar recursos após testes
+4. **Paralelização**: Usar pytest-xdist para testes paralelos
+
+## Métricas de Qualidade
 
 ### Cobertura de Código
-- Relatório HTML: `htmlcov/index.html`
-- Relatório terminal: Exibido após execução com `--cov`
 
-### Relatórios BDD
-- Cenários executados e resultados
-- Steps com falha detalhados
+- **Meta**: >= 80% de cobertura geral
+- **Domínio**: >= 95% de cobertura (lógica crítica)
+- **Aplicação**: >= 90% de cobertura (casos de uso)
+- **Infraestrutura**: >= 70% de cobertura (integrações)
 
-### Benchmarks de Performance
-- Tempos de execução por operação
-- Uso de memória e recursos
-- Comparações de performance
+### Tipos de Teste
 
-## Melhores Práticas
+- **70% Unitários**: Testes rápidos e isolados
+- **20% Integração**: Testes de contratos e fluxos
+- **10% E2E**: Testes de fluxos completos
 
-1. **Isolamento**: Cada teste é independente
-2. **Mocking**: Dependências externas são mockadas
-3. **Fixtures**: Reutilização de configurações comuns
-4. **Marcadores**: Organização por categoria
-5. **Documentação**: Testes servem como documentação
-6. **Performance**: Testes executam rapidamente
-7. **Segurança**: Validação de inputs maliciosos
-8. **Cobertura**: Meta de 80% de cobertura mínima
+### Qualidade
+
+- **Zero falhas**: Todos os testes devem passar
+- **Zero warnings**: Resolver todos os warnings
+- **Tempo limite**: Suite completa < 5 minutos
+- **Estabilidade**: Testes não devem ser flaky
+
+## Ferramentas e Dependências
+
+### Principais Dependências
+
+- `pytest` - Framework de testes
+- `pytest-asyncio` - Suporte a testes assíncronos
+- `pytest-cov` - Cobertura de código
+- `pytest-mock` - Mocking
+- `pytest-bdd` - Testes BDD
+
+### Ferramentas de Qualidade
+
+- `black` - Formatação de código
+- `flake8` - Análise estática
+- `mypy` - Verificação de tipos
+- `bandit` - Análise de segurança
 
 ## Contribuindo
 
 Ao adicionar novos testes:
+
 1. Siga a estrutura de diretórios existente
 2. Use fixtures apropriadas
 3. Adicione marcadores relevantes
 4. Mantenha testes isolados e rápidos
 5. Documente cenários complexos
 6. Valide tanto casos positivos quanto negativos
+7. Mantenha cobertura >= 80%
+8. Execute todos os testes antes de commit

@@ -5,24 +5,10 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
-from src.main import (
-    setup_logging,
-    main
-)
+from src.main import main
 
 
-class TestSetupLogging:
-    def test_setup_logging_verbose_false(self):
-        """Testa configuração de logging sem verbose."""
-        with patch('src.main.logging') as mock_logging:
-            setup_logging(verbose=False)
-            mock_logging.basicConfig.assert_called_once()
 
-    def test_setup_logging_verbose_true(self):
-        """Testa configuração de logging com verbose."""
-        with patch('src.main.logging') as mock_logging:
-            setup_logging(verbose=True)
-            mock_logging.basicConfig.assert_called_once()
 
 
 class TestCreateDirectories:

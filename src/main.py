@@ -10,10 +10,16 @@ import logging
 import sys
 from pathlib import Path
 
+# Validações de ambiente
+from src.config.validators import (
+    validate_ffmpeg, validate_ai_providers, validate_data_directories, ValidationError
+)
+
 # Adicionar o diretório src ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.config.alfredo_config import AlfredoConfig
+from src.config.logging_config import setup_structured_logging
 from src.config.constants import (
     APP_NAME, APP_DESCRIPTION, DEFAULT_LOG_FILE, DEFAULT_LOGS_DIR,
     COMMAND_YOUTUBE, COMMAND_LOCAL, COMMAND_BATCH,
@@ -29,22 +35,7 @@ from src.presentation.cli.command_registry import CommandRegistry
 from src.domain.exceptions.alfredo_errors import AlfredoError
 
 
-def setup_logging(config: AlfredoConfig, verbose: bool = False) -> None:
-    """Configura o sistema de logging."""
-    level = logging.DEBUG if verbose else getattr(logging, config.log_level.upper())
-    
-    # Garantir que o diretório de logs existe
-    log_file = config.data_dir / DEFAULT_LOGS_DIR / DEFAULT_LOG_FILE
-    log_file.parent.mkdir(parents=True, exist_ok=True)
-    
-    logging.basicConfig(
-        level=level,
-        format=config.log_format,
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
+
 
 
 async def main():
@@ -84,11 +75,24 @@ async def main():
 
     args = parser.parse_args()
 
+
     # Configurar sistema
     config = AlfredoConfig()
+    try:
+        # Validação de ambiente e dependências
+        validate_ffmpeg()
+        validate_ai_providers(config)
+        validate_data_directories(config.data_dir)
+    except ValidationError as e:
+        print(f"❌ Erro de configuração/ambiente: {e}")
+        sys.exit(2)
     config.validate_runtime()
     config.create_directory_structure()
-    setup_logging(config, args.verbose)
+    # Configuração de logging estruturado (JSON)
+    log_file = config.data_dir / DEFAULT_LOGS_DIR / DEFAULT_LOG_FILE
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    setup_structured_logging(str(log_file), level=log_level, to_stdout=True)
 
     # Criar factory e registry
     factory = InfrastructureFactory(config)

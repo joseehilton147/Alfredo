@@ -149,21 +149,24 @@ def validate_video_sources(file_path: Optional[str], url: Optional[str]) -> None
     has_valid_file = False
     has_valid_url = False
     
-    # Verificar arquivo local
+    # Verificar arquivo local (apenas se fornecido e existir)
     if file_path:
-        file_path_obj = Path(file_path)
-        if file_path_obj.exists() and file_path_obj.is_file():
-            has_valid_file = True
+        try:
+            file_path_obj = Path(file_path)
+            if file_path_obj.exists() and file_path_obj.is_file():
+                has_valid_file = True
+        except TypeError:
+            pass # Ignorar se file_path não for um tipo válido para Path
     
-    # Verificar URL
+    # Verificar URL (apenas se fornecida e válida)
     if url:
         try:
             validate_url_format(url)
             has_valid_url = True
         except InvalidVideoFormatError:
-            # URL inválida, mas não vamos lançar erro aqui
-            # pois pode ter arquivo válido
-            pass
+            pass # URL inválida, mas não vamos lançar erro aqui se houver file_path válido
+        except TypeError:
+            pass # Ignorar se url não for um tipo válido para validação
     
     # Pelo menos uma fonte deve ser válida
     if not has_valid_file and not has_valid_url:

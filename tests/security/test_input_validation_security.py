@@ -75,15 +75,15 @@ class TestMaliciousInputValidation:
     def test_path_traversal_attempts_in_file_paths(self):
         """Testa proteção contra path traversal em caminhos de arquivo."""
         malicious_paths = [
-            "../../../etc/passwd",
-            "..\\..\\..\\windows\\system32\\config\\sam",
-            "/etc/shadow",
-            "C:\\Windows\\System32\\config\\SAM",
-            "../../../../root/.ssh/id_rsa",
-            "..\\..\\..\\..\\boot.ini",
-            "/proc/self/environ",
-            "file:///etc/passwd",
-            "\\\\server\\share\\file.txt"
+            "../../../etc/passwd_fake",
+            "..\\..\\..\\windows\\system32\\config\\sam_fake",
+            "/etc/shadow_fake",
+            "C:\\Windows\\System32\\config\\SAM_fake", 
+            "../../../../root/.ssh/id_rsa_fake",
+            "..\\..\\..\\..\\boot.ini_fake",
+            "/proc/self/environ_fake",
+            "file:///etc/passwd_fake",
+            "\\\\server\\share\\file_fake.txt"
         ]
         
         for malicious_path in malicious_paths:

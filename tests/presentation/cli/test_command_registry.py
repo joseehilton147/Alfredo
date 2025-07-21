@@ -24,10 +24,10 @@ class MockCommand(Command):
             aliases=["m", "test"]
         )
     
-    async def execute_from_parsed_args(self, args):
+    async def execute(self, *args, **kwargs):
         return {"status": "success", "command": "mock"}
     
-    def validate_parsed_args(self, args):
+    def validate_args(self, *args, **kwargs):
         return True
 
 

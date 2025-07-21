@@ -437,7 +437,7 @@ class AlfredoConfig:
     default_ai_provider: str = "whisper"
     
     # Timeouts e Limites
-    max_video_duration: int = 3600
+    max_video_duration: int = 86400  # 24 horas
     download_timeout: int = 300
     transcription_timeout: int = 600
     max_file_size_mb: int = 500

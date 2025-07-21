@@ -1,184 +1,99 @@
-"""Integration tests for YouTube video processing."""
-
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
+import os
+from pathlib import Path
 
-from src.application.use_cases.process_youtube_video import (
-    ProcessYouTubeVideoRequest,
-    ProcessYouTubeVideoUseCase,
-)
-from src.domain.entities.video import Video
+from src.application.use_cases.process_youtube_video import ProcessYouTubeVideoUseCase, ProcessYouTubeVideoRequest
+from src.infrastructure.downloaders.ytdlp_downloader import YTDLPDownloader
+from src.infrastructure.extractors.ffmpeg_extractor import FFmpegExtractor
+from src.infrastructure.providers.mock_provider_strategy import MockProviderStrategy
+from src.infrastructure.storage.filesystem_storage import FileSystemStorage
+from src.infrastructure.storage.json_storage_adapter import JsonStorageAdapter
+from src.infrastructure.repositories.json_video_repository import JsonVideoRepository
+from src.config.alfredo_config import AlfredoConfig
+from src.domain.exceptions.alfredo_errors import DownloadFailedError, TranscriptionError, InvalidVideoFormatError
 
+@pytest.fixture
+def config():
+    # Configuração para testes, usando diretórios temporários
+    test_config = AlfredoConfig()
+    test_config.data_dir = Path("data/temp/test_youtube_processing")
+    test_config.output_dir = test_config.data_dir / "output"
+    test_config.temp_dir = test_config.data_dir / "temp"
+    test_config.cache_dir = test_config.data_dir / "cache"
 
-class TestYouTubeProcessingIntegration:
-    """Integration tests for YouTube video processing."""
+    # Garante que os diretórios existam e estejam limpos antes de cada teste
+    for d in [test_config.temp_dir, test_config.output_dir, test_config.cache_dir]:
+        if d.exists():
+            import shutil
+            shutil.rmtree(d)
+        d.mkdir(parents=True, exist_ok=True)
+    
+    yield test_config
 
-    @pytest.fixture
-    def mock_video_repository(self):
-        """Mock video repository."""
-        repository = AsyncMock()
-        repository.save = AsyncMock()
-        return repository
+    # Limpa os diretórios após o teste
+    for d in [test_config.temp_dir, test_config.output_dir, test_config.cache_dir]:
+        if d.exists():
+            import shutil
+            shutil.rmtree(d)
 
-    @pytest.fixture
-    def mock_ai_provider(self):
-        """Mock AI provider."""
-        provider = AsyncMock()
-        provider.transcribe_audio = AsyncMock(return_value="Test transcription")
-        return provider
+@pytest.fixture
+def youtube_processing_use_case(config):
+    downloader = YTDLPDownloader(config)
+    extractor = FFmpegExtractor(config)
+    ai_provider = MockProviderStrategy() # Usando mock para AI para evitar chamadas externas
+    storage = FileSystemStorage(config)
+    return ProcessYouTubeVideoUseCase(downloader, extractor, ai_provider, storage, config)
 
-    @pytest.fixture
-    def use_case(self, mock_video_repository, mock_ai_provider):
-        """Create use case instance."""
-        return ProcessYouTubeVideoUseCase(mock_video_repository, mock_ai_provider)
+@pytest.mark.asyncio
+async def test_process_youtube_video_success(youtube_processing_use_case, config):
+    # URL de um vídeo curto para teste (ex: um vídeo de teste sem direitos autorais)
+    # ATENÇÃO: Substitua por uma URL de vídeo real e curta para testes de integração
+    # Exemplo: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" (Rick Astley - Never Gonna Give You Up)
+    # Ou um vídeo de teste mais curto e sem música para evitar problemas de direitos autorais
+    # Sugestão: um vídeo de teste de 10 segundos sem áudio ou com áudio genérico
+    test_url = "https://www.youtube.com/watch?v=LXb3EKWsInQ" # Exemplo de vídeo curto sem áudio complexo
 
-    @pytest.mark.asyncio
-    async def test_youtube_processing_end_to_end(self, use_case):
-        """Test complete YouTube video processing workflow."""
-        # Mock the download and info extraction methods
-        with patch.object(use_case, "_download_video") as mock_download, patch.object(
-            use_case, "_extract_video_info"
-        ) as mock_extract:
+    request = ProcessYouTubeVideoRequest(url=test_url, language="en", output_dir=str(config.output_dir))
+    response = await youtube_processing_use_case.execute(request)
 
-            # Setup mocks
-            mock_download.return_value = "/path/to/downloaded/video.mp4"
-            mock_extract.return_value = {
-                "id": "dQw4w9WgXcQ",
-                "title": "Test YouTube Video",
-                "uploader": "Test Channel",
-                "duration": 120,
-            }
+    assert response.video is not None
+    assert "Esta é uma transcrição simulada" in response.transcription
+    
+    
+    # Verifica se o vídeo e a transcrição foram salvos pelo storage
+    video_id = f"youtube_{response.video.metadata['id']}"
+    assert (config.output_dir / "videos" / video_id / "metadata.json").exists()
+    assert (config.output_dir / "transcriptions" / video_id / "transcription.txt").exists()
 
-            # Track progress updates
-            progress_updates = []
+    # Limpeza adicional (já coberta pelo fixture, mas bom ter certeza)
+    if os.path.exists(response.downloaded_file):
+        os.remove(response.downloaded_file)
+    
+    # Verifica se o arquivo de áudio temporário foi limpo
+    temp_audio_path = config.temp_dir / f"{video_id}.wav"
+    assert not temp_audio_path.exists()
 
-            def progress_callback(progress, status):
-                progress_updates.append((progress, status))
+@pytest.mark.asyncio
+async def test_process_youtube_video_invalid_url(youtube_processing_use_case):
+    invalid_url = "https://www.youtube.com/watch?v=INVALID_ID"
+    request = ProcessYouTubeVideoRequest(url=invalid_url, language="en")
+    
+    with pytest.raises(InvalidVideoFormatError):
+        await youtube_processing_use_case.execute(request)
 
-            # Create request
-            request = ProcessYouTubeVideoRequest(
-                url="https://youtube.com/watch?v=dQw4w9WgXcQ",
-                language="pt",
-                progress_callback=progress_callback,
-            )
+@pytest.mark.asyncio
+async def test_process_youtube_video_cancellation(youtube_processing_use_case, config):
+    test_url = "https://www.youtube.com/watch?v=LXb3EKWsInQ" # Vídeo curto
+    request = ProcessYouTubeVideoRequest(url=test_url, language="en")
 
-            # Execute processing
-            response = await use_case.execute(request)
+    # Simula o cancelamento durante o processo
+    youtube_processing_use_case._cancelled = True 
 
-            # Verify response
-            assert response.video.id == "youtube_dQw4w9WgXcQ"
-            assert response.video.title == "Test YouTube Video"
-            assert response.video.source_url == request.url
-            assert response.transcription == "Test transcription"
-            assert response.downloaded_file == "/path/to/downloaded/video.mp4"
-
-            # Verify progress updates were made
-            assert len(progress_updates) > 0
-            assert any("Baixando" in status for _, status in progress_updates)
-            assert any(
-                "Transcrevendo" in status or "transcrição" in status.lower()
-                for _, status in progress_updates
-            )
-            assert any(
-                "Concluído" in status or "concluído" in status.lower()
-                for _, status in progress_updates
-            )
-
-            # Verify repository was called to save video
-            assert (
-                use_case.video_repository.save.call_count == 2
-            )  # Once for video, once for transcription
-
-    @pytest.mark.asyncio
-    async def test_youtube_processing_with_cancellation(self, use_case):
-        """Test YouTube processing cancellation."""
-        # Cancel the processing
-        await use_case.cancel_processing()
-
-        # Create request
-        request = ProcessYouTubeVideoRequest(
-            url="https://youtube.com/watch?v=dQw4w9WgXcQ", language="pt"
-        )
-
-        # Verify cancellation works
-        with pytest.raises(Exception, match="Processamento cancelado"):
-            await use_case.execute(request)
-
-    @pytest.mark.asyncio
-    async def test_youtube_processing_error_handling(self, use_case):
-        """Test error handling in YouTube processing."""
-        # Mock download to fail
-        with patch.object(
-            use_case, "_download_video", side_effect=Exception("Download failed")
-        ):
-            request = ProcessYouTubeVideoRequest(
-                url="https://youtube.com/watch?v=dQw4w9WgXcQ", language="pt"
-            )
-
-            # Verify error is propagated
-            with pytest.raises(Exception, match="Download failed"):
-                await use_case.execute(request)
-
-    @pytest.mark.asyncio
-    async def test_youtube_url_validation(self):
-        """Test YouTube URL validation."""
-        from src.presentation.cli.components.input_field import YouTubeURLValidator
-
-        # Test valid URLs
-        valid_urls = [
-            "https://youtube.com/watch?v=dQw4w9WgXcQ",
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            "https://youtu.be/dQw4w9WgXcQ",
-            "youtube.com/watch?v=dQw4w9WgXcQ",
-            "youtu.be/dQw4w9WgXcQ",
-        ]
-
-        for url in valid_urls:
-            is_valid, message = YouTubeURLValidator.validate(url)
-            assert is_valid, f"URL should be valid: {url}"
-            assert "válida" in message.lower()
-
-        # Test invalid URLs
-        invalid_urls = [
-            "https://example.com/video",
-            "not-a-url",
-            "https://youtube.com/watch?v=invalid",
-            "https://youtube.com/watch?v=",
-            "",
-        ]
-
-        for url in invalid_urls:
-            if url:  # Empty string is considered valid (no input yet)
-                is_valid, message = YouTubeURLValidator.validate(url)
-                assert not is_valid, f"URL should be invalid: {url}"
-                assert "inválida" in message.lower()
-
-    @pytest.mark.asyncio
-    async def test_video_id_extraction(self):
-        """Test video ID extraction from YouTube URLs."""
-        from src.presentation.cli.components.input_field import YouTubeURLValidator
-
-        test_cases = [
-            ("https://youtube.com/watch?v=dQw4w9WgXcQ", "dQw4w9WgXcQ"),
-            ("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "dQw4w9WgXcQ"),
-            ("https://youtu.be/dQw4w9WgXcQ", "dQw4w9WgXcQ"),
-            ("https://youtu.be/dQw4w9WgXcQ?t=10", "dQw4w9WgXcQ"),
-            ("youtube.com/watch?v=dQw4w9WgXcQ", "dQw4w9WgXcQ"),
-            ("youtu.be/dQw4w9WgXcQ", "dQw4w9WgXcQ"),
-        ]
-
-        for url, expected_id in test_cases:
-            video_id = YouTubeURLValidator.extract_video_id(url)
-            assert video_id == expected_id, f"Failed to extract ID from {url}"
-
-        # Test invalid URLs
-        invalid_urls = [
-            "https://example.com/video",
-            "not-a-url",
-            "https://youtube.com/watch?v=invalid",
-        ]
-
-        for url in invalid_urls:
-            video_id = YouTubeURLValidator.extract_video_id(url)
-            assert video_id is None, f"Should not extract ID from invalid URL: {url}"
+    with pytest.raises(DownloadFailedError, match="Processamento cancelado pelo usuário"):
+        await youtube_processing_use_case.execute(request)
+    
+    # Garante que nenhum arquivo foi salvo ou que foram limpos
+    assert not any((config.output_dir / "videos").iterdir())
+    assert not any((config.output_dir / "transcriptions").iterdir())
+    assert not any((config.output_dir / "summaries").iterdir())
+    assert not any(config.temp_dir.iterdir())

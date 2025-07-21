@@ -45,8 +45,7 @@ class TestProcessYouTubeVideoUseCase:
         """Sample processing request."""
         return ProcessYouTubeVideoRequest(
             url="https://youtube.com/watch?v=dQw4w9WgXcQ",  # Valid YouTube video ID format
-            language="pt",
-            output_dir="test_output",
+            language="pt"
         )
 
     @pytest.mark.asyncio

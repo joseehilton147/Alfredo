@@ -1,6 +1,8 @@
 """Use case for transcribing audio files."""
 
 import logging
+import time
+import psutil
 from dataclasses import dataclass
 from typing import Optional
 
@@ -67,6 +69,9 @@ class TranscribeAudioUseCase:
             TranscriptionError: If transcription fails
             ConfigurationError: If configuration is invalid
         """
+        # imports já estão no topo
+        start_time = time.time()
+        mem_start = psutil.Process().memory_info().rss // 1024 // 1024
         try:
             # Step 1: Load video
             video = await self.storage.load_video(request.video_id)
@@ -81,7 +86,7 @@ class TranscribeAudioUseCase:
             # Step 2: Check if transcription already exists
             existing_transcription = await self.storage.load_transcription(request.video_id)
             if existing_transcription and not getattr(request, 'force_retranscribe', False):
-                self.logger.info(f"Using cached transcription for video: {request.video_id}")
+                self.logger.info(f"Using cached transcription for video: {request.video_id}", extra={"mem_usage_mb": mem_start})
                 return TranscribeAudioResponse(
                     video=video,
                     transcription=existing_transcription,
@@ -101,7 +106,7 @@ class TranscribeAudioUseCase:
                 )
 
             # Step 4: Transcribe audio
-            self.logger.info(f"Transcribing audio for video: {request.video_id}")
+            self.logger.info(f"Transcribing audio for video: {request.video_id}", extra={"mem_usage_mb": mem_start})
             transcription = await self.ai_provider.transcribe_audio(
                 request.audio_path, request.language
             )
@@ -134,7 +139,9 @@ class TranscribeAudioUseCase:
                 video.transcription = transcription
                 await self.storage.save_video(video)
 
-            self.logger.info(f"Audio transcribed successfully for video: {request.video_id}")
+            mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+            duration = round(time.time() - start_time, 2)
+            self.logger.info(f"Audio transcribed successfully for video: {request.video_id}", extra={"duration_sec": duration, "mem_usage_mb": mem_end})
 
             return TranscribeAudioResponse(
                 video=video,
@@ -146,7 +153,9 @@ class TranscribeAudioUseCase:
             # Re-raise domain exceptions
             raise
         except Exception as e:
-            self.logger.error(f"Error transcribing audio for video {request.video_id}: {str(e)}")
+            mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+            duration = round(time.time() - start_time, 2)
+            self.logger.error(f"Error transcribing audio for video {request.video_id}: {str(e)}", extra={"duration_sec": duration, "mem_usage_mb": mem_end})
             # Convert unexpected errors to domain exceptions
             raise TranscriptionError(
                 request.audio_path,

@@ -20,13 +20,13 @@ class TestAlfredoConfigCreation:
         assert config.ollama_model == "llama3:8b"
         assert config.whisper_model == "base"
         assert config.default_ai_provider == "whisper"
-        assert config.max_video_duration == 3600
+        assert config.max_video_duration == 86400
         assert config.download_timeout == 300
         assert config.transcription_timeout == 600
         assert config.max_file_size_mb == 500
         assert config.max_concurrent_downloads == 3
         assert config.default_language == "pt"
-        assert config.scene_threshold == 30.0
+        assert config.scene_threshold == 0.3
         assert config.audio_sample_rate == 16000
         assert config.video_quality == "best"
         assert config.log_level == "INFO"

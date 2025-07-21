@@ -44,13 +44,13 @@ class TestVideoCreation:
         video = Video(
             id="youtube_video_456",
             title="Vídeo do YouTube",
-            url="https://youtube.com/watch?v=dQw4w9WgXcQ",
+            source_url="https://youtube.com/watch?v=dQw4w9WgXcQ",
             duration=180.0
         )
         
         assert video.id == "youtube_video_456"
         assert video.title == "Vídeo do YouTube"
-        assert video.url == "https://youtube.com/watch?v=dQw4w9WgXcQ"
+        assert video.source_url == "https://youtube.com/watch?v=dQw4w9WgXcQ"
         assert video.duration == 180.0
         assert video.is_local() is False
         assert video.is_remote() is True
@@ -66,7 +66,7 @@ class TestVideoCreation:
                 id="dual_source_789",
                 title="Vídeo com Duas Fontes",
                 file_path=temp_path,
-                url="https://youtube.com/watch?v=test123",
+                source_url="https://youtube.com/watch?v=test123",
                 duration=300.0
             )
             
@@ -82,7 +82,7 @@ class TestVideoCreation:
         video = Video(
             id="meta_video_001",
             title="Vídeo com Metadados",
-            url="https://youtube.com/watch?v=meta123",
+            source_url="https://youtube.com/watch?v=meta123",
             duration=60.0,
             metadata={"uploader": "Test Channel", "views": "1000"}
         )
@@ -95,7 +95,7 @@ class TestVideoCreation:
         video = Video(
             id="transcribed_video_002",
             title="Vídeo Transcrito",
-            url="https://youtube.com/watch?v=trans123",
+            source_url="https://youtube.com/watch?v=trans123",
             duration=90.0,
             transcription="Esta é a transcrição do vídeo."
         )
@@ -176,7 +176,7 @@ class TestVideoValidation:
             Video(
                 id="valid_id_123",
                 title="Título Válido",
-                url="https://youtube.com/watch?v=test123",
+                source_url="https://youtube.com/watch?v=test123",
                 duration=-10.0
             )
         
@@ -189,7 +189,7 @@ class TestVideoValidation:
             Video(
                 id="valid_id_123",
                 title="Título Válido",
-                url="https://youtube.com/watch?v=test123",
+                source_url="https://youtube.com/watch?v=test123",
                 duration=86401.0  # Mais de 24 horas
             )
         

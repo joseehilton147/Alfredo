@@ -221,6 +221,13 @@ O Alfredo AI segue os princípios da **Clean Architecture**:
 - FFmpeg (para processamento de áudio)
 - ~2GB de espaço livre (para modelos Whisper)
 
+### 🎯 Capacidades e Limites
+
+- **Duração máxima de vídeo**: 24 horas (86.400 segundos)
+- **Formatos suportados**: MP4, AVI, MKV, MOV, WMV, FLV, WEBM
+- **Tamanho máximo de arquivo**: 500MB (configurável)
+- **Idiomas suportados**: Português, Inglês, Espanhol, Francês, Alemão, Italiano
+
 ## 🤝 Contribuindo
 
 1. Fork o projeto

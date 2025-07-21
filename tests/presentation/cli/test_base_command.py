@@ -25,6 +25,16 @@ from src.domain.exceptions.alfredo_errors import (
 class TestCommand(Command):
     """Comando de teste para testar a classe base."""
     
+    def _initialize_metadata(self) -> None:
+        """Inicializa metadados do comando de teste."""
+        from src.presentation.cli.base_command import CommandMetadata
+        self._metadata = CommandMetadata(
+            name="test",
+            description="Test command",
+            usage="test [options]",
+            category="test"
+        )
+    
     async def execute(self, *args, **kwargs):
         """Implementação de teste."""
         return "test_result"

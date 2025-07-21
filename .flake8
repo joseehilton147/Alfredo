@@ -23,12 +23,12 @@ exclude =
 
 # Códigos de erro a ignorar
 ignore = 
-    E203,  # whitespace before ':'
-    E501,  # line too long (handled by black)
-    W503,  # line break before binary operator
-    W504,  # line break after binary operator
-    E231,  # missing whitespace after ','
-    F401,  # imported but unused (handled by isort)
+    E203,
+    E501,
+    W503,
+    W504,
+    E231,
+    F401
 
 # Códigos de erro a selecionar especificamente
 select = 

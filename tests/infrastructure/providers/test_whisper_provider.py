@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.infrastructure.providers.whisper_provider import WhisperProvider
+from src.domain.exceptions.alfredo_errors import TranscriptionError, ProviderUnavailableError
 
 
 class TestWhisperProvider:
@@ -16,14 +17,20 @@ class TestWhisperProvider:
 
     def test_init_custom_model(self):
         """Testa inicialização com modelo customizado."""
-        provider = WhisperProvider("large")
+        from src.config.alfredo_config import AlfredoConfig
+        config = AlfredoConfig()
+        config.whisper_model = "large"
+        provider = WhisperProvider(config)
         assert provider.model_name == "large"
         assert provider.model is None
 
     @pytest.mark.asyncio
     async def test_transcribe_audio_success_first_time(self):
         """Testa transcrição de áudio com sucesso na primeira vez."""
-        provider = WhisperProvider("small")
+        from src.config.alfredo_config import AlfredoConfig
+        config = AlfredoConfig()
+        config.whisper_model = "small"
+        provider = WhisperProvider(config)
 
         with patch('whisper.load_model') as mock_load_model:
             mock_model = MagicMock()
@@ -69,10 +76,10 @@ class TestWhisperProvider:
             mock_model.transcribe.side_effect = Exception("Transcription error")
             mock_load_model.return_value = mock_model
 
-            with pytest.raises(RuntimeError) as exc_info:
+            with pytest.raises(TranscriptionError) as exc_info:
                 await provider.transcribe_audio("/path/to/audio.wav")
 
-            assert "Falha ao transcrever áudio" in str(exc_info.value)
+            assert "Falha na transcrição" in str(exc_info.value)
             assert "Transcription error" in str(exc_info.value)
 
     @pytest.mark.asyncio
@@ -83,10 +90,10 @@ class TestWhisperProvider:
         with patch('whisper.load_model') as mock_load_model:
             mock_load_model.side_effect = Exception("Model load error")
 
-            with pytest.raises(RuntimeError) as exc_info:
+            with pytest.raises(ProviderUnavailableError) as exc_info:
                 await provider.transcribe_audio("/path/to/audio.wav")
 
-            assert "Falha ao transcrever áudio" in str(exc_info.value)
+            assert "Erro ao carregar modelo" in str(exc_info.value)
             assert "Model load error" in str(exc_info.value)
 
     def test_get_supported_languages(self):

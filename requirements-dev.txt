@@ -35,7 +35,7 @@ xenon>=0.9.0
 mccabe>=0.7.0
 
 # Extensões do flake8
-flake8-complexity>=0.0.8
+# flake8-complexity>=0.0.8
 flake8-docstrings>=1.7.0
 flake8-import-order>=0.18.2
 flake8-bugbear>=23.0.0
@@ -45,4 +45,10 @@ flake8-functions>=0.0.7
 flake8-variables-names>=0.0.5
 
 # Ferramentas de duplicação de código
-jscpd>=0.0.7
+# jscpd>=0.0.7
+
+# Performance e Monitoramento
+# dependências de performance e monitoramento
+psutil>=5.9.0
+memory-profiler>=0.61.0
+# removido pytest-memory que não existe no PyPI

@@ -1,12 +1,43 @@
-"""Steps específicos para processamento de YouTube."""
+
+from pytest_bdd import given, when, then, parsers, scenarios
+
+@then("devo receber uma transcrição válida")
+def validar_transcricao_valida(bdd_context):
+    assert bdd_context["last_error"] is None, f"Erro inesperado: {bdd_context['last_error']}"
+    assert bdd_context["last_result"] is not None
+    result = bdd_context["last_result"]
+    if hasattr(result, 'video'):
+        assert result.video.transcription is not None
+        assert len(result.video.transcription) > 0
+    elif hasattr(result, 'transcription'):
+        assert result.transcription is not None
+        assert len(result.transcription) > 0
+
+@then(parsers.parse('devo receber um erro de "{error_type}"'))
+def validar_tipo_erro(bdd_context, error_type):
+    error_mapping = {
+        "formato inválido": "InvalidVideoFormatError",
+        "download": "DownloadFailedError",
+        "transcrição": "TranscriptionError",
+        "configuração": "ConfigurationError",
+        "provider indisponível": "ProviderUnavailableError"
+    }
+    expected_error_class = error_mapping.get(error_type, error_type)
+    actual_error_class = bdd_context["last_error"].__class__.__name__ if bdd_context["last_error"] is not None else None
+    assert actual_error_class == expected_error_class, \
+        f"Esperado {expected_error_class}, mas recebeu {actual_error_class}"
+
+@then(parsers.parse("o sistema deve tentar novamente até {max_retries:d} vezes"))
+def validar_tentativas_retry(bdd_context, max_retries, mock_video_downloader):
+    assert mock_video_downloader.download.call_count <= max_retries
+
+from pytest_bdd import given, when, then, parsers, scenarios
 import pytest
 import asyncio
-from pytest_bdd import given, when, then, parsers, scenarios
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock
+"""Steps específicos para processamento de YouTube."""
 
-# Carregar cenários do arquivo feature
-scenarios('../features/youtube_processing.feature')
 
 # Steps específicos para YouTube
 

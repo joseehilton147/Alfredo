@@ -39,26 +39,26 @@ class TestAIStrategyContext:
 
     def test_strategy_context_initialization(self, config):
         """Testa inicialização do contexto de estratégias."""
-        with patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies'):
-            context = AIStrategyContext(config)
+        with patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy'):
+            context = AIStrategyContext(config=config)
             assert context.config == config
             assert context._strategies == {}
             assert context._current_strategy is None
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_set_strategy_success(self, mock_init, config, mock_strategy):
         """Testa troca de estratégia com sucesso."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {"mock": mock_strategy}
         
         context.set_strategy("mock")
         
         assert context._current_strategy == mock_strategy
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_set_strategy_not_available(self, mock_init, config):
         """Testa erro ao tentar usar estratégia não disponível."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {}
         
         with pytest.raises(ConfigurationError) as exc_info:
@@ -66,41 +66,42 @@ class TestAIStrategyContext:
         
         assert "não está disponível" in str(exc_info.value)
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_current_strategy_success(self, mock_init, config, mock_strategy):
         """Testa obtenção da estratégia atual."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._current_strategy = mock_strategy
         
         result = context.get_current_strategy()
         
         assert result == mock_strategy
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_current_strategy_none_available(self, mock_init, config):
         """Testa erro quando nenhuma estratégia está disponível."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._current_strategy = None
+        context._strategies = {}  # Garantir que é um dicionário vazio
         
         with pytest.raises(ProviderUnavailableError) as exc_info:
             context.get_current_strategy()
         
         assert "Nenhuma estratégia de IA está disponível" in str(exc_info.value)
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_available_strategies(self, mock_init, config, mock_strategy):
         """Testa listagem de estratégias disponíveis."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {"mock": mock_strategy, "test": Mock()}
         
         result = context.get_available_strategies()
         
         assert result == ["mock", "test"]
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_strategy_info_current(self, mock_init, config, mock_strategy):
         """Testa obtenção de informações da estratégia atual."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._current_strategy = mock_strategy
         
         result = context.get_strategy_info()
@@ -108,10 +109,10 @@ class TestAIStrategyContext:
         assert result["name"] == "mock"
         assert result["is_available"] is True
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_strategy_info_specific(self, mock_init, config, mock_strategy):
         """Testa obtenção de informações de estratégia específica."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {"mock": mock_strategy}
         
         result = context.get_strategy_info("mock")
@@ -119,10 +120,10 @@ class TestAIStrategyContext:
         assert result["name"] == "mock"
         assert result["configuration"]["supports_transcription"] is True
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_best_strategy_for_transcription(self, mock_init, config):
         """Testa seleção da melhor estratégia para transcrição."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         
         # Mock strategies com diferentes capacidades
         whisper_mock = Mock()
@@ -138,10 +139,10 @@ class TestAIStrategyContext:
         # Whisper ou Groq devem ser preferidos para transcrição
         assert result in ["whisper", "groq"]
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_best_strategy_for_summarization(self, mock_init, config):
         """Testa seleção da melhor estratégia para sumarização."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         
         # Mock strategies com diferentes capacidades
         whisper_mock = Mock()
@@ -157,10 +158,10 @@ class TestAIStrategyContext:
         # Groq deve ser preferido para sumarização
         assert result == "groq"
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_get_best_strategy_no_suitable(self, mock_init, config):
         """Testa erro quando nenhuma estratégia suporta a tarefa."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         
         # Mock strategy que não suporta sumarização
         mock_strategy = Mock()
@@ -174,10 +175,10 @@ class TestAIStrategyContext:
         assert "Nenhuma estratégia disponível suporta" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     async def test_transcribe_with_best_strategy(self, mock_init, config, mock_strategy):
         """Testa transcrição usando melhor estratégia."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {"mock": mock_strategy}
         context._current_strategy = mock_strategy
         
@@ -188,10 +189,10 @@ class TestAIStrategyContext:
         mock_strategy.transcribe.assert_called_once_with("audio.wav", "pt")
 
     @pytest.mark.asyncio
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     async def test_summarize_with_best_strategy(self, mock_init, config, mock_strategy):
         """Testa sumarização usando melhor estratégia."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         context._strategies = {"mock": mock_strategy}
         context._current_strategy = mock_strategy
         
@@ -202,10 +203,10 @@ class TestAIStrategyContext:
         mock_strategy.summarize.assert_called_once_with("texto", "contexto")
 
     @pytest.mark.asyncio
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     async def test_strategy_restoration_after_best_strategy_use(self, mock_init, config):
         """Testa que estratégia original é restaurada após usar melhor estratégia."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
         
         original_strategy = Mock()
         original_strategy.get_strategy_name.return_value = "original"
@@ -244,10 +245,11 @@ class TestAIStrategyContext:
             assert hasattr(strategy, 'is_available')
             assert strategy.get_strategy_name() == name
 
-    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_strategies')
+    @patch('src.application.services.ai_strategy_context.AIStrategyContext._initialize_default_strategy')
     def test_extensibility_new_strategy(self, mock_init, config):
         """Testa facilidade de adicionar nova estratégia."""
-        context = AIStrategyContext(config)
+        context = AIStrategyContext(config=config)
+        context._strategies = {}  # Inicializar como dicionário vazio
         
         # Simular adição de nova estratégia
         new_strategy = Mock()

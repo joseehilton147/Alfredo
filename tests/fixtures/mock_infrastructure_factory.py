@@ -55,6 +55,14 @@ class MockVideoDownloaderGateway(VideoDownloaderGateway):
             {"format_id": "worst", "ext": "mp4", "quality": "360p"}
         ]
 
+    async def get_video_id(self, url: str) -> str:
+        """Mock get_video_id method."""
+        return "mock_video_id"
+
+    async def is_url_supported(self, url: str) -> bool:
+        """Mock is_url_supported method."""
+        return True
+
 
 class MockAudioExtractorGateway(AudioExtractorGateway):
     """Mock implementation of AudioExtractorGateway."""
@@ -86,6 +94,21 @@ class MockAudioExtractorGateway(AudioExtractorGateway):
             "format": "mp4"
         }
 
+    async def estimate_extraction_time(self, video_path: str, format: str = "wav") -> float:
+        return 10.0
+
+    async def extract_audio_segment(self, video_path: str, output_path: str, start_time: float, end_time: float, format: str = "wav", sample_rate: int = 16000) -> str:
+        return output_path
+
+    async def get_supported_formats(self) -> list:
+        return ["wav", "mp3"]
+
+    async def is_format_supported(self, format: str) -> bool:
+        return True
+
+    async def validate_video_file(self, video_path: str) -> bool:
+        return True
+
 
 class MockStorageGateway(StorageGateway):
     """Mock implementation of StorageGateway."""
@@ -94,6 +117,7 @@ class MockStorageGateway(StorageGateway):
         self.should_fail = should_fail
         self.videos = {}
         self.transcriptions = {}
+        self.summaries = {}
         self.save_video_calls = []
         self.load_video_calls = []
         self.save_transcription_calls = []
@@ -155,6 +179,33 @@ class MockStorageGateway(StorageGateway):
         
         videos = list(self.videos.values())
         return videos[offset:offset + limit]
+
+    async def backup_data(self, backup_path: str) -> bool:
+        return not self.should_fail
+
+    async def cleanup_orphaned_data(self) -> int:
+        return 0
+
+    async def delete_video(self, video_id: str) -> bool:
+        if video_id in self.videos:
+            del self.videos[video_id]
+            return True
+        return False
+
+    async def get_storage_stats(self) -> dict:
+        return {}
+
+    async def load_summary(self, video_id: str) -> str:
+        return self.summaries.get(video_id)
+
+    async def restore_data(self, backup_path: str) -> bool:
+        return not self.should_fail
+
+    async def save_summary(self, video_id: str, summary: str, metadata: dict = None) -> None:
+        self.summaries[video_id] = summary
+
+    async def video_exists(self, video_id: str) -> bool:
+        return video_id in self.videos
 
 
 class MockAIProvider(AIProviderInterface):

@@ -51,7 +51,7 @@ class TestTranscribeAudioUseCase:
     async def test_execute_success(self, use_case, mock_factory, temp_audio_file):
         """Test successful audio transcription using factory."""
         # Setup video in storage
-        video = Video(id="test-123", title="Test Video")
+        video = Video(id="test-123", title="Test Video", source_url="https://www.youtube.com/watch?v=test")
         storage = mock_factory.create_storage()
         storage.videos["test-123"] = video
 
@@ -89,7 +89,7 @@ class TestTranscribeAudioUseCase:
     async def test_execute_audio_file_not_found(self, use_case, mock_factory):
         """Test transcription when audio file does not exist."""
         # Setup video in storage
-        video = Video(id="test-123", title="Test Video")
+        video = Video(id="test-123", title="Test Video", source_url="https://www.youtube.com/watch?v=test")
         storage = mock_factory.create_storage()
         storage.videos["test-123"] = video
 
@@ -106,7 +106,7 @@ class TestTranscribeAudioUseCase:
     async def test_execute_cached_transcription(self, use_case, mock_factory, temp_audio_file):
         """Test using cached transcription."""
         # Setup video and cached transcription in storage
-        video = Video(id="test-123", title="Test Video")
+        video = Video(id="test-123", title="Test Video", source_url="https://www.youtube.com/watch?v=test")
         storage = mock_factory.create_storage()
         storage.videos["test-123"] = video
         storage.transcriptions["test-123"] = {
@@ -133,7 +133,7 @@ class TestTranscribeAudioUseCase:
     async def test_execute_transcription_failure(self, failing_mock_factory, temp_audio_file):
         """Test handling of transcription failure using factory."""
         # Setup video in storage (but AI provider will fail)
-        video = Video(id="test-123", title="Test Video")
+        video = Video(id="test-123", title="Test Video", source_url="https://www.youtube.com/watch?v=test")
         storage = failing_mock_factory.create_storage()
         storage.should_fail = False  # Storage should work, only AI should fail
         storage.videos["test-123"] = video

@@ -235,8 +235,8 @@ class InfrastructureFactory:
         self._validate_storage_type(storage_type)
         
         try:
+            # Preparar dicionário de dependências para injeção em UseCases
             dependencies = {
-                'video_repository': self.create_storage(storage_type),  # Para compatibilidade
                 'downloader': self.create_video_downloader(),
                 'extractor': self.create_audio_extractor(),
                 'ai_provider': self.create_ai_provider(provider_type),

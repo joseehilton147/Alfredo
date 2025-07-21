@@ -1,6 +1,8 @@
 """Implementação do repositório de vídeos usando JSON."""
 
 import json
+import time
+import psutil
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +29,9 @@ class JsonVideoRepository(VideoRepository):
         self.base_path.mkdir(parents=True, exist_ok=True)
 
     async def find_by_id(self, video_id: str) -> Optional[Video]:
+        # imports já estão no topo
+        start_time = time.time()
+        mem_start = psutil.Process().memory_info().rss // 1024 // 1024
         """Busca um vídeo pelo ID.
 
         Args:
@@ -49,6 +54,13 @@ class JsonVideoRepository(VideoRepository):
             if data.get("created_at"):
                 data["created_at"] = datetime.fromisoformat(data["created_at"])
 
+            # Mapear 'url' antiga para 'source_url' se 'source_url' não existir
+            if "url" in data and "source_url" not in data:
+                data["source_url"] = data.pop("url")
+
+            mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+            duration = round(time.time() - start_time, 2)
+            self.logger.info(f"Video loaded: {video_id}", extra={"duration_sec": duration, "mem_usage_mb": mem_end})
             return Video(**data)
 
         except FileNotFoundError:
@@ -75,6 +87,9 @@ class JsonVideoRepository(VideoRepository):
             return None
 
     async def save(self, video: Video) -> None:
+        import time, psutil
+        start_time = time.time()
+        mem_start = psutil.Process().memory_info().rss // 1024 // 1024
         """Salva um vídeo no repositório.
 
         Args:
@@ -95,6 +110,8 @@ class JsonVideoRepository(VideoRepository):
                     video.created_at.isoformat() if video.created_at else None
                 ),
                 "metadata": video.metadata,
+                "transcription": video.transcription,
+                "source_url": video.source_url,
             }
 
             # Salvar metadados
@@ -102,7 +119,9 @@ class JsonVideoRepository(VideoRepository):
             with open(metadata_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
-            self.logger.info(f"Vídeo salvo: {video.id}")
+            mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+            duration = round(time.time() - start_time, 2)
+            self.logger.info(f"Vídeo salvo: {video.id}", extra={"duration_sec": duration, "mem_usage_mb": mem_end})
 
         except PermissionError as e:
             self.logger.error(f"Sem permissão para salvar vídeo {video.id}: {str(e)}")
@@ -125,6 +144,9 @@ class JsonVideoRepository(VideoRepository):
             raise
 
     async def delete(self, video_id: str) -> bool:
+        import time, psutil
+        start_time = time.time()
+        mem_start = psutil.Process().memory_info().rss // 1024 // 1024
         """Remove um vídeo do repositório.
 
         Args:
@@ -139,7 +161,9 @@ class JsonVideoRepository(VideoRepository):
                 import shutil
 
                 shutil.rmtree(video_dir)
-                self.logger.info(f"Vídeo removido: {video_id}")
+                mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+                duration = round(time.time() - start_time, 2)
+                self.logger.info(f"Vídeo removido: {video_id}", extra={"duration_sec": duration, "mem_usage_mb": mem_end})
                 return True
             return False
 
@@ -156,6 +180,9 @@ class JsonVideoRepository(VideoRepository):
             return False
 
     async def list_all(self) -> list[Video]:
+        import time, psutil
+        start_time = time.time()
+        mem_start = psutil.Process().memory_info().rss // 1024 // 1024
         """Lista todos os vídeos no repositório.
 
         Returns:
@@ -170,6 +197,9 @@ class JsonVideoRepository(VideoRepository):
                     if video:
                         videos.append(video)
 
+            mem_end = psutil.Process().memory_info().rss // 1024 // 1024
+            duration = round(time.time() - start_time, 2)
+            self.logger.info(f"Videos listed", extra={"duration_sec": duration, "mem_usage_mb": mem_end, "count": len(videos)})
             return videos
 
         except PermissionError as e:

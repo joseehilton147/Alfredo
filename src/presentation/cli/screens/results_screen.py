@@ -124,13 +124,14 @@ class ResultsScreen(Screen):
         super().__init__(cli)
         self.results: List[TranscriptionResult] = []
         self.selected_index = 0
-        self.view_mode = "list"  # "list", "preview", "full_view"
+        self.view_mode = "list"  # "list", "preview", "full_view", "message"
         self.current_result: Optional[TranscriptionResult] = None
         self.scroll_offset = 0
         self.preview_scroll = 0
         self.show_confirmation = False
         self.confirmation_action = None
         self.confirmation_message = ""
+        self.message_panel: Optional[Panel] = None
 
     async def on_enter(self) -> None:
         """Called when entering the screen."""
@@ -138,6 +139,11 @@ class ResultsScreen(Screen):
 
     async def render(self) -> None:
         """Render the results screen."""
+        if self.view_mode == "message":
+            if self.message_panel:
+                self.update_display(self.message_panel)
+            return
+
         if self.show_confirmation:
             await self._render_confirmation()
         elif self.view_mode == "list":
@@ -414,6 +420,11 @@ class ResultsScreen(Screen):
 
     async def handle_input(self, key: str) -> None:
         """Handle user input."""
+        if self.view_mode == "message":
+            self.view_mode = "list"
+            self.message_panel = None
+            return
+
         if await self.handle_common_keys(key):
             return
 
@@ -696,11 +707,9 @@ class ResultsScreen(Screen):
         content.append(f"\nLocal: {exports_dir}\n\n", style="dim")
         content.append("Pressione qualquer tecla para continuar...", style="yellow")
 
-        panel = self.create_panel(content, "📤 Exportação", border_style="green")
-        self.update_display(panel)
+        self.message_panel = self.create_panel(content, "📤 Exportação", border_style="green")
+        self.view_mode = "message"
 
-        # Wait for key press
-        await self._wait_for_key()
 
     async def _confirm_delete(self, result: TranscriptionResult) -> None:
         """Show delete confirmation dialog."""
@@ -738,11 +747,9 @@ class ResultsScreen(Screen):
         content.append(f"'{title}' foi removida permanentemente.\n\n", style="white")
         content.append("Pressione qualquer tecla para continuar...", style="yellow")
 
-        panel = self.create_panel(content, "✅ Deletado", border_style="green")
-        self.update_display(panel)
+        self.message_panel = self.create_panel(content, "✅ Deletado", border_style="green")
+        self.view_mode = "message"
 
-        # Wait for key press
-        await self._wait_for_key()
 
     async def _show_error(self, message: str) -> None:
         """Show error message."""
@@ -751,18 +758,5 @@ class ResultsScreen(Screen):
         content.append(f"{message}\n\n", style="white")
         content.append("Pressione qualquer tecla para continuar...", style="yellow")
 
-        panel = self.create_panel(content, "❌ Erro", border_style="red")
-        self.update_display(panel)
-
-        # Wait for key press
-        await self._wait_for_key()
-
-    async def _wait_for_key(self) -> None:
-        """Wait for any key press."""
-        # This is a simplified implementation
-        # In a real implementation, you'd wait for actual key input
-        await asyncio.sleep(0.1)
-
-        # For now, we'll just wait a moment and continue
-        # The actual key waiting would be handled by the CLI framework
-        pass
+        self.message_panel = self.create_panel(content, "❌ Erro", border_style="red")
+        self.view_mode = "message"

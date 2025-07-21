@@ -1,0 +1,1 @@
+"""Testes unitários para gateways de aplicação."""

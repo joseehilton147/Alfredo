@@ -148,6 +148,8 @@ class AlfredoConfig:
                 "obrigatória para provider openai",
                 expected="OPENAI_API_KEY environment variable"
             )
+        # Verifica presença de FFmpeg
+        self.validate_ffmpeg()
     
     def create_directory_structure(self) -> None:
         """Cria toda a estrutura de diretórios necessária."""
@@ -172,6 +174,30 @@ class AlfredoConfig:
                     details={"directory": str(directory)}
                 )
     
+    def validate_ffmpeg(self) -> None:
+        """Verifica se o FFmpeg está instalado e acessível."""
+        import shutil, subprocess
+
+        ffmpeg_path = shutil.which("ffmpeg")
+        if not ffmpeg_path:
+            raise ConfigurationError(
+                "ffmpeg", 
+                "não encontrado no PATH", 
+                expected="ffmpeg instalado e acessível"
+            )
+        # Verificar versão
+        result = subprocess.run(
+            ["ffmpeg", "-version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        if result.returncode != 0:
+            raise ConfigurationError(
+                "ffmpeg", 
+                "erro ao executar ffmpeg", 
+                expected="ffmpeg retornar versão", 
+                details={"stderr": result.stderr.decode(errors='ignore')}
+            )
     def get_provider_config(self, provider_name: str) -> dict:
         """
         Retorna configuração específica do provider.

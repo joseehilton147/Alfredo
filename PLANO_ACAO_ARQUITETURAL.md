@@ -294,9 +294,9 @@ class AlfredoConfig:
     whisper_model: str = "base"
     
     # Timeouts e Limites
-    max_video_duration: int = 3600  # 1 hora
-    download_timeout: int = 300     # 5 minutos
-    transcription_timeout: int = 600 # 10 minutos
+    max_video_duration: int = 86400  # 24 horas
+    download_timeout: int = 300      # 5 minutos
+    transcription_timeout: int = 600  # 10 minutos
     max_file_size: str = "500MB"
     
     # Diretórios

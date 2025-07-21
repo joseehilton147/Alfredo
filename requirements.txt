@@ -8,3 +8,7 @@ yt-dlp>=2023.10.13
 
 # Configuração
 python-dotenv>=1.0.0
+
+# Interface de Linha de Comando
+rich>=13.7.0
+textual>=0.58.0

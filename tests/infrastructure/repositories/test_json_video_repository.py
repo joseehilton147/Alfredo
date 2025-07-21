@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock
 
 from src.infrastructure.repositories.json_video_repository import JsonVideoRepository
 from src.domain.entities.video import Video
+from src.domain.exceptions.alfredo_errors import InvalidVideoFormatError, ConfigurationError
 
 
 class TestJsonVideoRepository:
@@ -24,7 +25,9 @@ class TestJsonVideoRepository:
     @pytest.fixture
     def repository(self, temp_dir):
         """Cria uma instância do repositório para testes."""
-        return JsonVideoRepository(temp_dir)
+        from src.config.alfredo_config import AlfredoConfig
+        config = AlfredoConfig(data_dir=Path(temp_dir))
+        return JsonVideoRepository(config)
 
     @pytest.fixture
     def sample_video(self):
@@ -32,21 +35,26 @@ class TestJsonVideoRepository:
         return Video(
             id="test_video_123",
             title="Vídeo de Teste",
-            file_path="/path/to/video.mp4",
+            source_url="https://www.youtube.com/watch?v=test123",
             duration=120.0,
-            metadata={"quality": "HD", "source": "local"}
+            metadata={"quality": "HD", "source": "youtube"}
         )
 
     def test_init_default_path(self):
         """Testa inicialização com caminho padrão."""
         with patch('pathlib.Path.mkdir'):
             repo = JsonVideoRepository()
-            assert repo.base_path == Path("data/output")
+            # O path deve ser absoluto baseado na configuração padrão
+            assert repo.base_path.name == "output"
+            assert repo.base_path.parent.name == "data"
 
     def test_init_custom_path(self, temp_dir):
         """Testa inicialização com caminho customizado."""
-        repo = JsonVideoRepository(temp_dir)
-        assert repo.base_path == Path(temp_dir)
+        from src.config.alfredo_config import AlfredoConfig
+        config = AlfredoConfig()
+        config.data_dir = Path(temp_dir)
+        repo = JsonVideoRepository(config)
+        assert repo.base_path == Path(temp_dir) / "output"
         assert repo.base_path.exists()
 
     @pytest.mark.asyncio
@@ -84,6 +92,7 @@ class TestJsonVideoRepository:
         video = Video(
             id="test_none_date",
             title="Test Video",
+            source_url="https://www.youtube.com/watch?v=test_none",
             created_at=None
         )
 
@@ -102,17 +111,21 @@ class TestJsonVideoRepository:
         with open(metadata_file, "w") as f:
             f.write("invalid json content")
 
-        # Tentar buscar vídeo
-        result = await repository.find_by_id(sample_video.id)
-        assert result is None
+        # Tentar buscar vídeo - deve lançar exceção
+        with pytest.raises(InvalidVideoFormatError):
+            await repository.find_by_id(sample_video.id)
 
     @pytest.mark.asyncio
     async def test_save_error_handling(self, repository):
         """Testa tratamento de erro ao salvar."""
-        video = Video(id="test", title="Test")
+        video = Video(
+            id="test", 
+            title="Test",
+            source_url="https://www.youtube.com/watch?v=test_error"
+        )
 
         with patch('builtins.open', side_effect=OSError("Permission denied")):
-            with pytest.raises(OSError):
+            with pytest.raises(ConfigurationError):
                 await repository.save(video)
 
     @pytest.mark.asyncio
@@ -157,9 +170,21 @@ class TestJsonVideoRepository:
     async def test_list_all_with_videos(self, repository):
         """Testa listagem com vídeos."""
         # Criar alguns vídeos
-        video1 = Video(id="video1", title="Video 1")
-        video2 = Video(id="video2", title="Video 2")
-        video3 = Video(id="video3", title="Video 3")
+        video1 = Video(
+            id="video1", 
+            title="Video 1",
+            source_url="https://www.youtube.com/watch?v=video1"
+        )
+        video2 = Video(
+            id="video2", 
+            title="Video 2",
+            source_url="https://www.youtube.com/watch?v=video2"
+        )
+        video3 = Video(
+            id="video3", 
+            title="Video 3",
+            source_url="https://www.youtube.com/watch?v=video3"
+        )
 
         await repository.save(video1)
         await repository.save(video2)
@@ -178,7 +203,11 @@ class TestJsonVideoRepository:
     async def test_list_all_with_non_video_directories(self, repository):
         """Testa listagem ignorando diretórios sem vídeos."""
         # Criar vídeo válido
-        video1 = Video(id="valid_video", title="Valid Video")
+        video1 = Video(
+            id="valid_video", 
+            title="Valid Video",
+            source_url="https://www.youtube.com/watch?v=valid_video"
+        )
         await repository.save(video1)
 
         # Criar diretório sem metadata.json

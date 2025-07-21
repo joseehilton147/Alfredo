@@ -27,7 +27,13 @@ class Video:
             self.created_at = datetime.now()
         if self.metadata is None:
             self.metadata = {}
-        
+
+        # Sincronizar url e source_url para compatibilidade retroativa
+        if self.source_url is None and self.url is not None:
+            self.source_url = self.url
+        elif self.url is None and self.source_url is not None:
+            self.url = self.source_url
+
         # Executar validações robustas
         self._validate_id()
         self._validate_title()
@@ -44,7 +50,7 @@ class Video:
 
     def _validate_sources(self) -> None:
         """Valida as fontes do vídeo (file_path e URL) usando validador específico."""
-        validate_video_sources(self.file_path, self.url)
+        validate_video_sources(self.file_path, self.source_url)
 
     def _validate_duration(self) -> None:
         """Valida a duração do vídeo usando validador específico."""
@@ -54,11 +60,11 @@ class Video:
         return self.file_path is not None
 
     def is_remote(self) -> bool:
-        return self.url is not None
+        return self.source_url is not None
 
     def get_source(self) -> str:
         if self.is_local() and self.file_path:
             return self.file_path
-        if self.is_remote() and self.url:
-            return self.url
+        if self.is_remote() and self.source_url:
+            return self.source_url
         return ""

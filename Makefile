@@ -55,27 +55,15 @@ install:
 	pip install -e .
 
 # Run tests
-test:
-	pytest tests/ -v --cov=src --cov-report=term-missing
 
-# Format code
-format:
-	black src/ tests/
-	isort src/ tests/
 
-# Clean build artifacts
-clean:
-	rm -rf build/ dist/ *.egg-info/
-	rm -rf .pytest_cache/ .mypy_cache/ .coverage htmlcov/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
 
-# Docker commands
-docker-build:
-	docker build -t alfredo-ai:latest .
 
-docker-run:
-	docker run -it --rm -v $(pwd)/data:/app/data alfredo-ai:latest
+
+
+
+
+
 
 # Development install
 install-dev: install
@@ -84,16 +72,16 @@ install-dev: install
 
 # Testing
 test:
-	pytest tests/ -v --cov=src --cov-report=html --cov-report=term
+	python -c "import sys; sys.path.insert(0, '.'); import pytest; pytest.main(['tests/', '-v', '--cov=src', '--cov-report=html', '--cov-report=term'])"
 
 test-watch:
-	pytest tests/ -v --cov=src --cov-report=html --cov-report=term -f
+	python -c "import sys; sys.path.insert(0, '.'); import pytest; pytest.main(['tests/', '-v', '--cov=src', '--cov-report=html', '--cov-report=term', '-f'])"
 
 test-integration:
-	pytest tests/integration/ -v --cov=src --cov-report=html --cov-report=term
+	python -c "import sys; sys.path.insert(0, '.'); import pytest; pytest.main(['tests/integration/', '-v', '--cov=src', '--cov-report=html', '--cov-report=term'])"
 
 test-unit:
-	pytest tests/unit/ -v --cov=src --cov-report=html --cov-report=term
+	PYTHONPATH=$(shell pwd) pytest tests/unit/ -v --cov=src --cov-report=html --cov-report=term
 
 # Linting
 lint:
@@ -202,7 +190,7 @@ release:
 
 # CI/CD
 ci-test:
-	pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+	PYTHONPATH=$(shell pwd) pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
 	flake8 src/ tests/
 	mypy src/
 	bandit -r src/
@@ -361,7 +349,7 @@ metrics:
 # Test coverage with detailed report
 test-coverage:
 	@echo "🧪 Running tests with coverage analysis..."
-	@pytest tests/ --cov=src --cov-report=html:data/output/coverage --cov-report=xml:data/output/coverage.xml --cov-report=term-missing --cov-fail-under=80
+	PYTHONPATH=$(shell pwd) pytest tests/ --cov=src --cov-report=html:data/output/coverage --cov-report=xml:data/output/coverage.xml --cov-report=term-missing --cov-fail-under=80
 	@echo "📊 Coverage report saved to data/output/coverage/"
 
 # Automated coverage analysis with detailed reporting
@@ -385,13 +373,13 @@ coverage-regression:
 # BDD tests specifically
 test-bdd:
 	@echo "🥒 Running BDD tests..."
-	@pytest tests/bdd/ -v --tb=short
+	PYTHONPATH=$(shell pwd) pytest tests/bdd/ -v --tb=short
 	@echo "✅ BDD tests completed"
 
 # Performance and benchmark tests
 test-performance:
 	@echo "⚡ Running performance tests..."
-	@pytest tests/performance/ -v --tb=short
+	PYTHONPATH=$(shell pwd) pytest tests/performance/ -v --tb=short
 	@echo "✅ Performance tests completed"
 
 # Security analysis with detailed report
@@ -418,10 +406,7 @@ solid-check:
 	@echo "✅ Verificação SOLID concluída"
 
 # Quality dashboard generation
-quality-dashboard:
-	@echo "📊 Gerando dashboard de qualidade..."
-	@python scripts/quality_dashboard.py
-	@echo "✅ Dashboard de qualidade gerado"
+
 
 # Open quality dashboard in browser
 quality-dashboard-open: quality-dashboard

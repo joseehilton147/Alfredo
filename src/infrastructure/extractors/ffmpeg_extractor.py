@@ -1,6 +1,7 @@
 """Implementação de extração de áudio usando FFmpeg."""
 
 import asyncio
+import json
 import logging
 import subprocess
 from pathlib import Path
@@ -246,7 +247,6 @@ class FFmpegExtractor(AudioExtractorGateway):
                 )
             
             # Parse do JSON
-            import json
             probe_data = json.loads(result.stdout)
             
             if not probe_data.get("streams"):

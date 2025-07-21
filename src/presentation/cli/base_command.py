@@ -366,6 +366,10 @@ class Command(ABC):
             operation: Nome da operação sendo executada
             **context: Contexto adicional para logging
         """
+        import time, psutil
+        context = dict(context)
+        context["start_time"] = time.time()
+        context["mem_usage_mb"] = psutil.Process().memory_info().rss // 1024 // 1024
         self.logger.info(f"🚀 Iniciando {operation}", extra=context)
 
     def log_execution_success(self, operation: str, **context) -> None:
@@ -376,6 +380,12 @@ class Command(ABC):
             operation: Nome da operação executada
             **context: Contexto adicional para logging
         """
+        import time, psutil
+        context = dict(context)
+        context["end_time"] = time.time()
+        context["mem_usage_mb"] = psutil.Process().memory_info().rss // 1024 // 1024
+        if "start_time" in context:
+            context["duration_sec"] = round(context["end_time"] - context["start_time"], 2)
         self.logger.info(f"✅ {operation} concluído com sucesso", extra=context)
 
     def log_execution_error(self, operation: str, error: Exception, **context) -> None:
@@ -387,6 +397,12 @@ class Command(ABC):
             error: Exceção que ocorreu
             **context: Contexto adicional para logging
         """
+        import time, psutil
+        context = dict(context)
+        context["end_time"] = time.time()
+        context["mem_usage_mb"] = psutil.Process().memory_info().rss // 1024 // 1024
+        if "start_time" in context:
+            context["duration_sec"] = round(context["end_time"] - context["start_time"], 2)
         self.logger.error(
             f"❌ Erro em {operation}: {str(error)}", 
             extra=context, 

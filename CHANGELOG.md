@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não Lançado]
+
+### 🔧 Modificado
+
+#### ⚙️ Configuração e Limites
+- **Duração máxima de vídeo aumentada**: De 1 hora (3600s) para 24 horas (86400s)
+  - Permite processamento de vídeos muito longos (palestras, streams, documentários)
+  - Configuração ajustada em `MAX_VIDEO_DURATION_HOURS = 24`
+  - Testes atualizados para refletir novo limite
+
+---
+
 ## [2.0.0] - 2025-01-20 - 🏗️ REFATORAÇÃO CLEAN ARCHITECTURE COMPLETA
 
 ### 🎯 MARCO PRINCIPAL: Refatoração Completa para Clean Architecture

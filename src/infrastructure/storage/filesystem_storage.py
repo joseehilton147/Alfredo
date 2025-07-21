@@ -27,8 +27,9 @@ class FileSystemStorage(StorageGateway):
         """
         self.config = config
         self.logger = logging.getLogger(__name__)
-        self.base_path = config.data_dir / "output"
-        
+        # Usar data_dir/output como diretório raiz de saída
+        self.base_path = self.config.data_dir / "output"
+
         # Garantir que diretórios existem
         self._ensure_directories()
     
@@ -142,7 +143,11 @@ class FileSystemStorage(StorageGateway):
             
             # Mapear campos para compatibilidade
             if data.get("url") and not data.get("source_url"):
-                data["source_url"] = data["url"]
+                data["source_url"] = data.pop("url")
+            
+            # Remover campos que não são esperados no construtor de Video
+            data.pop("transcription", None)
+            data.pop("summary", None)
             
             return Video(**data)
             

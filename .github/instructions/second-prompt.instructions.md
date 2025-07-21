@@ -1,0 +1,1 @@
+Siga em ordem todos os passos até completar TODOS eles, só pare caso chegue ao seu limite de contexto.

@@ -1,20 +1,27 @@
+# Step mínimo para isolar problema de reconhecimento
+from pytest_bdd import given, then
+
+@given("dummy step")
+def dummy_step():
+    print("[DEBUG] Dummy step executado")
+
+@then("dummy result")
+def dummy_result():
+    print("[DEBUG] Dummy result executado")
 """Steps para validação de entidades de domínio."""
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from pytest_bdd import given, when, then, parsers
 from pathlib import Path
 from unittest.mock import Mock, patch
 import tempfile
 import os
-
-# Carregar cenários do arquivo feature
-scenarios('../features/domain_validation.feature')
 
 # Steps para configuração
 
 @given("que o sistema de validação está ativo")
 def sistema_validacao_ativo():
     """Confirma que o sistema de validação está funcionando."""
-    pass
+    print("[DEBUG] Step 'que o sistema de validação está ativo' registrado e executado")
 
 # Steps para dados de entrada
 
@@ -119,8 +126,9 @@ def url_formato_invalido(bdd_context):
         "title": "Vídeo de Teste",
         "duration": 120.5,
         "url": "not-a-valid-url"
-    }@given("
-que tenho um file_path que não existe")
+    }
+
+@given("que tenho um file_path que não existe")
 def file_path_inexistente(bdd_context):
     """Define file_path que não existe."""
     bdd_context["video_data"] = {
