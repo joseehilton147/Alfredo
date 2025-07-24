@@ -1,5 +1,7 @@
 # Alfredo AI 🤖
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/96d8d9fb78714b49b5636ef1faf36e8f)](https://app.codacy.com/gh/joseehilton147/Alfredo?utm_source=github.com&utm_medium=referral&utm_content=joseehilton147/Alfredo&utm_campaign=Badge_Grade)
+
 **AI-powered video transcription and analysis tool**
 
 ## 🎯 O que é o Alfredo AI?
