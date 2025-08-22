@@ -98,11 +98,7 @@ O Alfredo está sendo usado e melhorado continuamente no dia a dia. Cada iteraç
 
 ### 📚 Documentação Adicional
 
-- [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) - Como o Alfredo funciona por dentro
-- [**AGENTS.md**](docs/AGENTS.md) - Catálogo completo dos 73 agentes
-- [**WORKFLOW.md**](docs/WORKFLOW.md) - Fluxos de trabalho detalhados
-- [**ROADMAP.md**](docs/ROADMAP.md) - Para onde estamos indo
-- [**INSTALL.md**](docs/INSTALL.md) - Como configurar o Alfredo
+- [**ROADMAP.md**](ROADMAP.md) - Para onde estamos indo
 
 ---
 
